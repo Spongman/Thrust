@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "document-ready-promise": "^3.0.1",
-    "gulp-util": "^3.0.8",
     "loop-protect": "^0.9.0",
     "uglify-es": "^3.0.25"
   },

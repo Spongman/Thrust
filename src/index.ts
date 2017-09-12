@@ -1,21 +1,3 @@
-/*
-import ellipse from "./ellipse"
-import explosion from "./explosion"
-import ball from "./ball"
-import rod from "./rod"
-import reactor from "./reactor"
-import ship from "./ship"
-import fuel from "./fuel"
-import enemy from "./enemy"
-import star from "./star"
-import bullet from "./bullet"
-import particle from "./particle"
-import base from "./base"
-import boxEntity from "./boxEntity"
-import box from "./box"
-import entity from "./entity"
-import vec2 from "./vec2"
-*/
 /// <raeference path="../p5.global-mode.d.ts"/>
 
 declare interface Array<T>
@@ -30,7 +12,7 @@ const THRUST = 200;
 const TURN_SPEED = 200;
 const FRICTION = 1;//0.99;
 const BULLET_SPEED = 250;
-const START_LEVEL = 2;
+const START_LEVEL = 0;
 const CABLE_FORCE = G / 40;
 const ENEMY_FIRE_MIN = 1;
 const ENEMY_FIRE_MAX = 4;

@@ -619,6 +619,12 @@ function draw()
 	}
 }
 
+function windowResized()
+{
+	createCanvas(windowWidth, windowHeight);
+	borderw = Math.ceil(width / TILE_SIZE / 2);
+	borderh = Math.ceil(height / TILE_SIZE / 2);
+}
 
 function setup()
 {
@@ -630,8 +636,6 @@ function setup()
 	borderh = Math.ceil(height / TILE_SIZE / 2);
 
 	timePrev = millis() / 1000.0;
-
-
 
 	ball = new Ball(
 		new Vec2(30, 30)
@@ -655,5 +659,4 @@ function setup()
 	loadLevels();
 
 	resetLevel();
-
 }

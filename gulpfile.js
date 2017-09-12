@@ -17,7 +17,7 @@ var uglifycss = require('gulp-uglifycss');
 var clean = require('gulp-clean');
 
 const config = {
-	production: !!util.env.production,
+	//production: !!util.env.production,
 };
 
 

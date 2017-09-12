@@ -478,7 +478,7 @@ function draw()
 	}
 
 	noStroke();
-	strokeWeight(0);
+	strokeWeight(0.25);
 	for (let iParticle = particles.length - 1; iParticle >= 0; iParticle--)
 	{
 		const particle = particles[iParticle];

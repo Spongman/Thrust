@@ -32,7 +32,7 @@ gulp.task('typescript', function () {
 		'./src/tsconfig.json', {
 			removeComments: config.production,
 			experimentalAsyncFunctions: !config.production,
-			target: config.production ? "es2015" : "es2017"
+			target: config.production ? "ES5" : "es2017"
 		}
 	);
 	return tsProject.src()

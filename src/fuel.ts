@@ -3,8 +3,8 @@
 class Fuel extends BoxEntity
 {
 	fuel = 3;
-	score = 150;
 	refuelBox: Box;
+	private readonly score = 150;
 
 	constructor(p: Vec2)
 	{
@@ -65,6 +65,7 @@ class Fuel extends BoxEntity
 
 		pop();
 	}
+
 	damage(friendly: boolean)
 	{
 		if (friendly)

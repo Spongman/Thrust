@@ -1,10 +1,7 @@
 
 abstract class Entity
 {
-	refuelBox: Box;
-	fuel: number;
-
-	constructor(public p: Vec2, public r: number)
+	constructor(public p: Vec2, public readonly r: number)
 	{
 	}
 
@@ -19,10 +16,10 @@ abstract class Entity
 
 	remove()
 	{
-		const index = entities.indexOf(this);
+		const index = _entities.indexOf(this);
 		if (index >= 0)
 		{
-			entities.removeAt(index);
+			_entities.removeAt(index);
 			return true;
 		}
 		return false;
@@ -30,7 +27,7 @@ abstract class Entity
 
 	explode()
 	{
-		explode(this.p, this.r, 5 + this.r * this.r / EXPLOSION_DENSITY);
+		Particle.createExplosion(this.p, this.r, 5 + this.r * this.r / EXPLOSION_DENSITY);
 	}
 
 	kill()

@@ -1,17 +1,17 @@
 
 class Level
 {
-	reactor?: Reactor;
-	ballPos?: Vec2;
+	reactor: Reactor;
+	ballPos: Vec2;
 
 	constructor(
-		public color: p5.Color,
-		public ballColor: p5.Color,
-		public lines: string[])
+		public readonly color: p5.Color,
+		public readonly ballColor: p5.Color,
+		public readonly lines: string[])
 	{
 	}
 
-	loadLevel(entities: Entity[])
+	load(entities: Entity[])
 	{
 		const lines = this.lines;
 		const lh = lines.length;
@@ -76,9 +76,7 @@ class Level
 				}
 
 				if (entity)
-				{
 					entities.push(entity);
-				}
 			}
 
 			for (let y = 0; y < TILE_SIZE; y += LAND_GAP)
@@ -154,13 +152,9 @@ class Level
 							gr.line(lx, ly, x - 1, ly);
 
 							if (start < TILE_SIZE)
-							{
 								lx = x + Math.min(TILE_SIZE, start);
-							}
 							else
-							{
 								land = false;
-							}
 						}
 						else if (end < TILE_SIZE)
 						{
@@ -179,9 +173,7 @@ class Level
 				}
 
 				if (land)
-				{
 					gr.line(lx, ly, 10000, ly);
-				}
 			}
 
 			for (let y = 0; y < TILE_SIZE * borderh; y += LAND_GAP)
@@ -198,12 +190,94 @@ class Level
 			image: <p5.Image><any>gr
 		}
 	}
-}
 
+	collidePoint(p: Vec2, r: number, offset?: Vec2)
+	{
+		const lines = this.lines;
+
+		let mx = Math.floor(p.x / TILE_SIZE);
+		let my = Math.floor(p.y / TILE_SIZE);
+
+		if (offset)
+		{
+			mx += offset.x;
+			my += offset.y;
+		}
+
+		const x = p.x - mx * TILE_SIZE;
+		const y = p.y - my * TILE_SIZE;
+
+		mx -= borderw;
+
+		if (my < 0) { return false; }
+		if (my >= lines.length) { return true; }
+
+		const line = lines[my];
+		if (mx < 0) { mx = 0; }
+		else if (mx >= line.length) { mx = line.length - 1; }
+
+		switch (line[mx])
+		{
+			default:
+			case '0':
+				return false;
+			case '1':
+				return true;
+			case '2':
+				return (y + r * SQRT5 / 2 > x / 2);
+			case '3':
+			case 'c':
+				return (y + r * SQRT5 / 2 > TILE_SIZE / 2 + x / 2);
+			case '4':
+			case 'd':
+				return (y + r * SQRT5 / 2 > TILE_SIZE - x / 2);
+			case '5':
+				return (y + r * SQRT5 / 2 > TILE_SIZE / 2 - x / 2);
+			case '6':
+				return (y - r * SQRT5 / 2 < TILE_SIZE - x / 2);
+			case '7':
+			case 'e':
+				return (y - r * SQRT5 / 2 < TILE_SIZE / 2 - x / 2);
+			case '8':
+			case 'f':
+				return (y - r * SQRT5 / 2 < x / 2);
+			case '9':
+				return (y - r * SQRT5 / 2 < TILE_SIZE / 2 + x / 2);
+		}
+	}
+
+	collideCircle(p: Vec2, r: number)
+	{
+		const px = (p.x + TILE_SIZE * 1000) % TILE_SIZE;
+		const py = (p.y + TILE_SIZE * 1000) % TILE_SIZE;
+
+		const offset = new Vec2(0, 0);
+
+		for (
+			let mx = Math.floor((px - r) / TILE_SIZE);
+			mx <= Math.floor((px + r) / TILE_SIZE);
+			mx += 1)
+		{
+			for (
+				let my = Math.floor((py - r) / TILE_SIZE);
+				my <= Math.floor((py + r) / TILE_SIZE);
+				my += 1)
+			{
+				offset.x = mx;
+				offset.y = my;
+
+				if (this.collidePoint(p, r, offset))
+					return true;
+			}
+		}
+
+		return false;
+	}
+}
 
 let levels: Level[];
 
-function loadLevels()
+function initializeLevels()
 {
 	levels = [
 		new Level(

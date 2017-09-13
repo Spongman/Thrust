@@ -2,7 +2,7 @@
 
 abstract class BoxEntity extends Entity
 {
-	constructor(p: Vec2, public box: Box)
+	constructor(p: Vec2, public readonly box: Box)
 	{
 		super(p, NaN);
 	}
@@ -18,7 +18,7 @@ abstract class BoxEntity extends Entity
 		for (let x = this.box.x; x < this.box.x + this.box.w; x += q)
 		{
 			for (let y = this.box.y; y < this.box.y + this.box.h; y += q)
-				explode(new Vec2(x, y), 0, 1);
+				Particle.createExplosion(new Vec2(x, y), 0, 1);
 		}
 	}
 }

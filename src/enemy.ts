@@ -2,13 +2,13 @@
 
 class Enemy extends Entity
 {
-	sx: number;
-	sy: number;
-	ba: number;
-	bp: Vec2;
-	score: number;
-	timeFire: number;
-	ellipse: Ellipse;
+	private readonly sx: number;
+	private readonly sy: number;
+	private readonly ba: number;
+	private readonly bp: Vec2;
+	private readonly ellipse: Ellipse;
+	private readonly score: number;
+	private timeFire: number;
 
 	constructor(p: Vec2, type: number)
 	{
@@ -33,7 +33,6 @@ class Enemy extends Entity
 		this.ellipse = new Ellipse(
 			p,
 			new Vec2(40, 26),
-			//new Vec2(1,1),
 			this.sx * this.sy * SLOPE
 		);
 	}
@@ -71,15 +70,14 @@ class Enemy extends Entity
 
 	move(_dt: number)
 	{
-		if (!level.reactor!.isDamaged() &&
+		if (!level.reactor.isDamaged() &&
 			(!this.timeFire || time > this.timeFire))
 		{
 			this.timeFire = time + random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX);
 
 			const av = (random(-95, 95) + random(-95, 95) + random(-95, 95)) / 3;
 			const bd = Vec2.fromAngle(this.ba + av);
-			const b = new Bullet(this.bp.clone(), bd.times(BULLET_SPEED));
-			particles.push(b);
+			Particle.particles.push(new Bullet(this.bp.clone(), bd.times(BULLET_SPEED)));
 		}
 		return true;
 	}

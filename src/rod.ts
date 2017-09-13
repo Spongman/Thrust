@@ -11,6 +11,14 @@ class Rod extends Entity
 		super(p, 0);
 	}
 
+	reset()
+	{
+		this.p = new Vec2(width / 2 + 2 * TILE_SIZE, -2 * TILE_SIZE);
+		this.v = new Vec2(0, 0);
+		this.a = -90;
+		this.va = 0;
+	}
+
 	draw()
 	{
 		stroke(level.color);
@@ -23,7 +31,7 @@ class Rod extends Entity
 		for (let i = 0; i < cr; i++)
 		{
 			const rp = ship.p.times(i / cr).plus(ball.p.times(1 - i / cr));
-			explode(rp, 5, 1);
+			Particle.createExplosion(rp, 5, 1);
 		}
 	}
 }

@@ -2,11 +2,17 @@
 
 class Ball extends Entity
 {
-	invincible: boolean;
+	invincible = true;
 
 	constructor(p: Vec2)
 	{
 		super(p, BALL_RADIUS);
+	}
+
+	reset()
+	{
+		this.invincible = true;
+		this.p = level.ballPos;
 	}
 
 	draw()

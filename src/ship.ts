@@ -2,19 +2,31 @@
 
 class Ship extends Entity
 {
-	weight = SHIP_WEIGHT;
-	dir = new Vec2(0, 0);
-	thrust = false;
-	v = new Vec2(0, 0);
 	rod: Rod | null = null;
+
+	dir = new Vec2(0, 0);
+	v = new Vec2(0, 0);
+	thrust = false;
 	shield = false;
 	refuel = false;
-
+	fuel = 10;
+	
 	constructor(p: Vec2, public a: number)
 	{
 		super(p, SHIP_RADIUS);
 
 		this.rotateTo(a || 0);
+	}
+
+	reset()
+	{
+		this.p = new Vec2(width / 2 + 2 * TILE_SIZE, -2 * TILE_SIZE);
+		this.v = new Vec2(0, 0);
+		this.rotateTo(-90);
+		this.thrust = false;
+		this.shield = false;
+
+		this.rod = null;
 	}
 
 	draw()
@@ -72,7 +84,6 @@ class Ship extends Entity
 	move(dt: number)
 	{
 		const rod = this.rod;
-
 		if (rod)
 		{
 			const dir = Vec2.fromAngle(rod.a);
@@ -118,5 +129,17 @@ class Ship extends Entity
 			return true;
 		die();
 		return false;
+	}
+
+	kill()
+	{
+		super.kill();
+
+		if (this.rod)
+		{
+			this.rod.kill();
+			ball.kill();
+			this.rod = null;
+		}
 	}
 }

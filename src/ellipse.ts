@@ -1,10 +1,10 @@
 
 class Ellipse
 {
-	cosa: number;
-	sina: number;
+	private readonly cosa: number;
+	private readonly sina: number;
 
-	constructor(public p: Vec2, public d: Vec2, public a: number)
+	constructor(public readonly p: Vec2, public readonly d: Vec2, public readonly a: number)
 	{
 		this.cosa = cos(a);
 		this.sina = sin(a);

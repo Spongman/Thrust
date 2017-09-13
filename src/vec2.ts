@@ -49,7 +49,6 @@ class Vec2
 		this.y *= scale;
 	}
 
-
 	plus(other: Vec2)
 	{
 		return new Vec2(

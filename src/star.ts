@@ -2,7 +2,7 @@
 
 class Star extends Particle
 {
-	time: number;
+	private readonly time: number;
 
 	constructor(p: Vec2)
 	{
@@ -20,7 +20,6 @@ class Star extends Particle
 		const d = t * 3;
 		line(this.p.x - d, this.p.y, this.p.x + d, this.p.y);
 		line(this.p.x, this.p.y - d, this.p.x, this.p.y + d);
-		//point(this.p.x, this.p.y);
 	}
 
 	move(_dt: number)

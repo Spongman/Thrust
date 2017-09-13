@@ -1,7 +1,7 @@
 
 class Box
 {
-	constructor(public x: number, public y: number, public w: number, public h: number)
+	constructor(public readonly x: number, public readonly y: number, public readonly w: number, public readonly h: number)
 	{
 	}
 

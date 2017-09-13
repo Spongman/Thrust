@@ -18,16 +18,16 @@ class Bullet extends Particle
 
 	move(dt: number)
 	{
-		return super.move(dt) && !collidePoint(this.p, this.r);
+		return super.move(dt) && !level.collidePoint(this.p, this.r);
 	}
 
 	collideEntities()
 	{
 		const p = this.p;
 		const r = this.r;
-		for (let iEntity = entities.length - 1; iEntity >= 0; iEntity--)
+		for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
 		{
-			const entity = entities[iEntity];
+			const entity = _entities[iEntity];
 			if (entity.collide(p, r))
 				return entity;
 		}

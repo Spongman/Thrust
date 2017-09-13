@@ -3,7 +3,7 @@
 class Reactor extends BoxEntity
 {
 	invincible = true;
-	timeSmoke = 0;
+	private timeSmoke = 0;
 	timeExplode = 0;
 	life = REACTOR_LIFE;
 
@@ -66,13 +66,12 @@ class Reactor extends BoxEntity
 
 			const grey = random(192, 255);
 
-			const ex = new Explosion(
+			Particle.particles.push(new Explosion(
 				this.p.plus(new Vec2(30, 8)),
 				new Vec2(0, -60),
 				[grey, grey, grey],
 				random(0.65, 0.85)
-			);
-			particles.push(ex);
+			));
 		}
 
 		if (this.life > 0)

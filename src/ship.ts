@@ -20,7 +20,7 @@ class Ship extends Entity
 
 	reset()
 	{
-		this.p = new Vec2(width / 2 + 2 * TILE_SIZE, -2 * TILE_SIZE);
+		this.p = level.startPos.clone();
 		this.v = new Vec2(0, 0);
 		this.rotateTo(-90);
 		this.thrust = false;

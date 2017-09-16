@@ -96,4 +96,10 @@ class Reactor extends BoxEntity
 	{
 		return this.life < 10;
 	}
+
+	reset()
+	{
+		this.life = REACTOR_LIFE
+		this.timeExplode = 0;
+	}
 }

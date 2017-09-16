@@ -28,7 +28,7 @@ class Bullet extends Particle
 		for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
 		{
 			const entity = _entities[iEntity];
-			if (entity.collide(p, r))
+			if (entity.solid && entity.collide(p, r))
 				return entity;
 		}
 		return null;

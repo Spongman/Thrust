@@ -106,7 +106,7 @@ function die()
 	setGame(GameState.DEATH);
 }
 
-function resetLevel()
+function loadLevel()
 {
 	_entities.length = 0;
 	_entities.push(ship, ball);
@@ -115,9 +115,18 @@ function resetLevel()
 	const levelInfo = level.load(_entities);
 	levelImg = levelInfo.image;
 
+	resetLevel();
+}
+
+function resetLevel()
+{
+	if (_entities.indexOf(ship) < 0)
+		_entities.unshift(ship);
+
 	ball.reset();
 	ship.reset();
 	ship.move(0);
+	level.reactor.reset();
 
 	wasAttaching = false;
 
@@ -183,7 +192,7 @@ function draw()
 				if (time - timeFire > 0.5)
 				{
 					timeFire = time;
-					const p = ship.p.plus(ship.dir.times(SHIP_RADIUS));
+					const p = ship.p.plus(ship.dir.times(ship.r));
 					const b = new Bullet(p, ship.dir.times(BULLET_SPEED).plus(ship.v));
 					b.friendly = true;
 					Particle.particles.push(b);
@@ -216,24 +225,36 @@ function draw()
 
 				if (gameState === GameState.PLAY)
 				{
-					if (entity !== ship && entity.collide(ship.p, SHIP_RADIUS) ||
-						entity !== ball && entity.collide(ball.p, BALL_RADIUS))
+					if (entity.solid)
 					{
-						die();
-					}
+						if (entity !== ship && entity.collide(ship.p, ship.r) ||
+							entity !== ball && entity.collide(ball.p, ball.r))
+						{
+							die();
+						}
 
-					if (ship.shield &&
-						entity instanceof Fuel &&
-						entity.refuelBox.collide(ship.p, 0))
+						if (ship.shield &&
+							entity instanceof Fuel &&
+							entity.refuelBox.collide(ship.p, 0))
+						{
+							const df = Math.min(entity.fuel, dt * 3);
+							entity.fuel -= df;
+							ship.fuel += df;
+							ship.refuel = true;
+							if (entity.fuel <= 0)
+							{
+								_entities.removeAt(iEntity);
+								score += 300;
+								continue;
+							}
+						}
+					}
+					else if (entity instanceof Checkpoint)
 					{
-						const df = Math.min(entity.fuel, dt * 3);
-						entity.fuel -= df;
-						ship.fuel += df;
-						ship.refuel = true;
-						if (entity.fuel <= 0)
+						if (entity.collide(ship.p, ship.r))
 						{
 							_entities.removeAt(iEntity);
-							score += 300;
+							level.startPos = entity.p;
 							continue;
 						}
 					}
@@ -246,8 +267,8 @@ function draw()
 				if (ship.thrust)
 					ship.fuel = Math.max(0, ship.fuel - dt / 3);
 
-				if (level.collideCircle(ship.p, SHIP_RADIUS) ||
-					level.collideCircle(ball.p, BALL_RADIUS))
+				if (level.collideCircle(ship.p, ship.r) ||
+					level.collideCircle(ball.p, ball.r))
 				{
 					die();
 				}
@@ -259,7 +280,7 @@ function draw()
 						score += 2000;
 
 					currentLevel++;
-					resetLevel();
+					loadLevel();
 				}
 
 				if (level.reactor.timeExplode && time > level.reactor.timeExplode)
@@ -472,5 +493,5 @@ function setup()
 	);
 
 	initializeLevels();
-	resetLevel();
+	loadLevel();
 }

@@ -23,6 +23,9 @@ class Explosion extends Particle
 	move(dt: number)
 	{
 		this.v.scale(0.95);
-		return super.move(dt) && (time - this.time < this.life);
+
+		return super.move(dt) &&
+			(time - this.time < this.life) &&
+			!level.collidePoint(this.p, this.r);
 	}
 }

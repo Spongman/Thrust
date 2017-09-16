@@ -3,6 +3,7 @@ class Level
 {
 	reactor: Reactor;
 	ballPos: Vec2;
+	startPos: Vec2;
 
 	constructor(
 		public readonly color: p5.Color,
@@ -27,6 +28,9 @@ class Level
 		//img.sourceImg = gr.externals.canvas;
 		//img.remote = true;
 
+
+		this.startPos = new Vec2(width / 2 + 2 * TILE_SIZE, -2 * TILE_SIZE);
+		
 		//gr.beginDraw();
 		gr.background(0);
 		gr.strokeWeight(LAND_THICKNESS);
@@ -72,6 +76,9 @@ class Level
 							(borderw + ich + 0.5) * TILE_SIZE,
 							iLine * TILE_SIZE + TILE_SIZE - 18 - BALL_RADIUS
 						);
+						break;
+					case 'k':
+						entity = new Checkpoint(p);
 						break;
 				}
 

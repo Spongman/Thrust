@@ -1,6 +1,8 @@
 
 abstract class Entity
 {
+	solid = true;
+	
 	constructor(public p: Vec2, public readonly r: number)
 	{
 	}

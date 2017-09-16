@@ -19,7 +19,7 @@ class Reactor extends BoxEntity
 	{
 		if (this.timeExplode)
 		{
-			const timeExplode = this.timeExplode - time;
+			const timeExplode = (this.timeExplode - time) * 2;
 			if (timeExplode - Math.trunc(timeExplode) > 0.5)
 				return;
 		}
@@ -62,7 +62,7 @@ class Reactor extends BoxEntity
 	{
 		if (time > this.timeSmoke && !this.isDamaged())
 		{
-			this.timeSmoke = time + random(0.5, 0.75);
+			this.timeSmoke = time + random(0.3, 0.4);
 
 			const grey = random(192, 255);
 

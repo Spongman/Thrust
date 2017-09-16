@@ -49,9 +49,9 @@ class Fuel extends BoxEntity
 		line(-10, -18, -6, -18);
 
 		// U
-		line(-4, -19, -4, -11);
+		line(-4, -18, -4, -11);
 		line(-4, -10, -0, -10);
-		line(-0, -19, -0, -11);
+		line(-0, -18, -0, -11);
 
 		// E
 		line(2, -18, 2, -10);
@@ -60,7 +60,7 @@ class Fuel extends BoxEntity
 		line(2, -10, 5, -10);
 
 		// L
-		line(7, -19, 7, -10);
+		line(7, -18, 7, -10);
 		line(7, -10, 10, -10);
 
 		pop();

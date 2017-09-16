@@ -27,12 +27,11 @@ class Base extends BoxEntity
 		vertex(-3, -3);
 		vertex(-3, -12);
 		vertex(-9, -14);
-		vertex(-10, -18);
-
-		bezierVertex(-4, -14, 4, -14, 10, -18);
+        vertex(-8, -18);
+        bezierVertex(-4, -14, 4, -14, 8, -18);
 		//vertex(-4, -16);
 		//vertex(4, -16);
-		vertex(10, -18);
+		vertex(8, -18);
 		vertex(9, -14);
 		vertex(3, -12);
 		vertex(3, -3);

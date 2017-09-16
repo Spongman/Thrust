@@ -5,11 +5,11 @@ declare interface Array<T>
 	removeAt(i: number): T;
 }
 
-const SHIP_WEIGHT = 1;
-const BALL_WEIGHT = 1;
-const G = 50;
+const SHIP_WEIGHT = 0.75;
+const BALL_WEIGHT = 0.75;
+const G = 40;
 const THRUST = 200;
-const TURN_SPEED = 200;
+const TURN_SPEED = 275;
 const FRICTION = 1;//0.99;
 const BULLET_SPEED = 250;
 const START_LEVEL = 0;
@@ -23,13 +23,13 @@ const BULLET_RADIUS = 1.5;
 const BALL_RADIUS = 10;
 const CABLE_LENGTH = 80;
 const SHIP_RADIUS = 14.5;
-const SHIELD_RADIUS = 18;
+const SHIELD_RADIUS = 16;
 const TILE_SIZE = 40;
-const LAND_GAP = 4;
+const LAND_GAP = 40 / 8;
 const LAND_THICKNESS = 2;
 const STAR_LIFE = 1;
 const STAR_RADIUS = 1;
-const MAX_HEIGHT = TILE_SIZE * 10;
+const MAX_HEIGHT = TILE_SIZE * 15;
 const EXPLOSION_DENSITY = 8;
 
 const TOTAL_WEIGHT = SHIP_WEIGHT + BALL_WEIGHT;
@@ -325,10 +325,19 @@ function draw()
 		}
 	}
 
+	var yl = borderh*TILE_SIZE-py*2;
+	if (yl > 0) {
+		fill(0);
+		rect(0, 0, width, yl);
+	}
 
-	background(0);
+	//background(0);
 	push();
-	translate(width / 2 - px, height / 2 - py);
+	//translate(width / 2 - px, height / 2 - py);
+	translate(width / 2, height / 2);
+	scale(2, 2);
+	translate(- px, - py);
+	stroke(0, 255, 0);
 	image(levelImg, 0, 0);
 
 	if (px < width / 2)
@@ -345,6 +354,10 @@ function draw()
 	strokeWeight(1.3);
 	fill(0, 0, 0);
 
+	for (const entity of _entities)
+		entity.draw(time);
+
+		
 	if (ship.rod)
 	{
 		ship.rod.draw();
@@ -354,9 +367,6 @@ function draw()
 		stroke(level.color);
 		line(ship.p.x, ship.p.y, ball.p.x, ball.p.y);
 	}
-
-	for (const entity of _entities)
-		entity.draw(time);
 
 	pop();
 
@@ -395,7 +405,7 @@ function draw()
 			noStroke();
 			textAlign(CENTER);
 			textSize(16);
-			text("thrust to start", 0, height / 2 + 100, width, height);
+			text("thrust to start", 0, height / 2 + 110, width, height);
 
 			if (score === 0)
 			{
@@ -417,7 +427,7 @@ function draw()
 		case GameState.DEATH:
 			if (time > waitTime && !keys[KEY_THRUST])
 			{
-				if (--lives > 0 && ship.fuel > 0)
+				if (--lives >= 0 && ship.fuel > 0)
 					resetLevel();
 				else
 					setGame(GameState.OVER);

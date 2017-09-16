@@ -37,9 +37,6 @@ class Ship extends Entity
 		push();
 		translate(this.p.x, this.p.y);
 
-		if (this.shield && random() < 0.5)
-			ellipse(0, 0, SHIELD_RADIUS * 2, SHIELD_RADIUS * 2);
-
 		if (this.refuel && random() < 0.5)
 		{
 			line(10, 20, 24, 60);
@@ -48,22 +45,27 @@ class Ship extends Entity
 
 		rotate(this.a + 90);
 
-		beginShape();
-		vertex(0, -16);
-		vertex(9, 1);
-		vertex(14, 2);
-		vertex(7, 13);
-		vertex(2, 8);
-		vertex(-2, 8);
-		vertex(-7, 13);
-		vertex(-14, 2);
-		vertex(-9, 1);
-		endShape(CLOSE);
+		if (this.shield && random() < 0.5)
+			ellipse(0, -3, SHIELD_RADIUS * 2, SHIELD_RADIUS * 2);
+		else {
 
-		if (this.thrust && random() < 0.5)
-		{
-			line(0, 13, 2, 11);
-			line(0, 13, -2, 11);
+			beginShape();
+			vertex(0, -18);
+			vertex(9, -1);
+			vertex(13, 1);
+			vertex(6, 11);
+			vertex(3, 8);
+			vertex(-3, 8);
+			vertex(-6, 11);
+			vertex(-13, 1);
+			vertex(-9, -1);
+			endShape(CLOSE);
+
+			if (this.thrust && random() < 0.5)
+			{
+				line(0, 13, 2, 11);
+				line(0, 13, -2, 11);
+			}
 		}
 
 		pop();

@@ -1,4 +1,5 @@
 /// <reference path="boxEntity.ts"/>
+/// <reference path="level.ts"/>
 
 class Base extends BoxEntity
 {

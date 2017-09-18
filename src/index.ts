@@ -1,49 +1,7 @@
-/// <raeference path="../p5.global-mode.d.ts"/>
 
-declare interface Array<T>
-{
-	removeAt(i: number): T;
-}
-
-const SHIP_WEIGHT = 0.75;
-const BALL_WEIGHT = 0.75;
-const G = 40;
-const THRUST = 200;
-const TURN_SPEED = 275;
-const FRICTION = 1;//0.99;
-const BULLET_SPEED = 250;
-const START_LEVEL = 0;
-const CABLE_FORCE = G / 40;
-const ENEMY_FIRE_MIN = 1;
-const ENEMY_FIRE_MAX = 4;
-const REACTOR_LIFE = 10;
-const REACTOR_HEAL = 1 / 4;
-
-const BULLET_RADIUS = 1.5;
-const BALL_RADIUS = 10;
-const CABLE_LENGTH = 80;
-const SHIP_RADIUS = 14.5;
-const SHIELD_RADIUS = 16;
-const TILE_SIZE = 40;
-const LAND_GAP = 40 / 8;
-const LAND_THICKNESS = 2;
-const STAR_LIFE = 1;
-const STAR_RADIUS = 1;
+let RENDER_SCALE = 0.5;
+	
 const MAX_HEIGHT = TILE_SIZE * 15;
-const EXPLOSION_DENSITY = 8;
-
-const TOTAL_WEIGHT = SHIP_WEIGHT + BALL_WEIGHT;
-const BALL_FRACTION = SHIP_WEIGHT / TOTAL_WEIGHT;
-const SHIP_FRACTION = BALL_WEIGHT / TOTAL_WEIGHT;
-const BALL_DISTANCE = CABLE_LENGTH * BALL_FRACTION;
-const SHIP_DISTANCE = CABLE_LENGTH * SHIP_FRACTION;
-
-const INERTIA = SHIP_WEIGHT * SHIP_DISTANCE * SHIP_DISTANCE +
-	BALL_WEIGHT * BALL_DISTANCE * BALL_DISTANCE;
-
-
-const SQRT5 = Math.sqrt(5);
-const SLOPE = Math.atan2(1, 2) * 360 / (2 * Math.PI);
 
 const KEY_LEFT = 'Z'.charCodeAt(0);
 const KEY_RIGHT = 'X'.charCodeAt(0);
@@ -58,40 +16,45 @@ const instrs = [
 	"shift : thrust",
 ];
 
-let borderw: number, borderh: number;
-
 
 enum GameState
 {
-	START = "start",
-	PLAY = "play",
-	DEATH = "death",
-	OVER = "over",
+	START,
+	PLAY,
+	DEATH,
+	OVER,
 }
 
 let gameState = GameState.START;
 function setGame(state: GameState)
 {
+	if (gameState === state)
+		return;
+
 	gameState = state;
+	switch(gameState)
+	{
+		case GameState.DEATH:
+		case GameState.OVER:
+			if (ship.fuel < 0)
+				ship.fuel = 0;
+			if (lives < 0)
+				lives = 0;
+			break;
+	}
 }
 
-let time: number;
 let timePrev: number;
+
 let timeFire = 0;
 let waitTime: number;
 
-let level: Level;
-let levelImg: p5.Image;
-let currentLevel = START_LEVEL;
+let paused: boolean = false;
 
-let ship: Ship;
-let ball: Ball;
 let wasAttaching: boolean;
 
-let score = 0;
 let lives = 3;
 
-const _entities: Entity[] = [];
 
 const keys: { [key: number]: boolean } = {};
 function keyPressed() { keys[+keyCode] = true; }
@@ -106,7 +69,7 @@ function die()
 	setGame(GameState.DEATH);
 }
 
-function loadLevel()
+function startLevel()
 {
 	_entities.length = 0;
 	_entities.push(ship, ball);
@@ -155,71 +118,19 @@ function draw()
 			ship.refuel = false;
 
 			if (!!keys[KEY_SHIELD])
-			{
-				let shield = false;
+				attaching = ship.activateShield(dt, wasAttaching);
 
-				if (!ship.rod)
-				{
-					if (ball.collide(ship.p, CABLE_LENGTH))
-					{
-						attaching = true;
-						shield = true;
-
-						const rodDir = ball.p.minus(ship.p);
-						ship.v.addScale(rodDir, dt * CABLE_FORCE);
-					}
-					else if (wasAttaching)
-					{
-						var rodDir = ship.p.minus(ball.p).unit();
-						var rod = ship.rod = new Rod(
-							ship.p.minus(rodDir.times(SHIP_DISTANCE)),
-							rodDir.angle()
-						);
-						rod.dir = rodDir;
-						rod.v = ship.v.times(1 / 2);
-						rod.va = -ship.v.cross(rodDir) * dt;
-
-						ball.invincible = false;
-					}
-				}
-
-				if (!shield)
-					ship.shield = true;
-			}
-
-			if (keys[KEY_FIRE])
-			{
-				if (time - timeFire > 0.5)
-				{
-					timeFire = time;
-					const p = ship.p.plus(ship.dir.times(ship.r));
-					const b = new Bullet(p, ship.dir.times(BULLET_SPEED).plus(ship.v));
-					b.friendly = true;
-					Particle.particles.push(b);
-				}
-			}
-			else
-			{
-				timeFire = 0.25;
-			}
-
-			if (ship.rod)
-				ship.rod.p.x = (ship.rod.p.x + levelImg.width) % levelImg.width;
-			else
-				ship.p.x = (ship.p.x + levelImg.width) % levelImg.width;
+			ship.fire(keys[KEY_FIRE]);
 
 			for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
 			{
 				const entity = _entities[iEntity];
-				if (entity.move)
+				if (entity !== ship || gameState === GameState.PLAY)
 				{
-					if (entity !== ship || gameState === GameState.PLAY)
+					if (entity.move(dt) === false)
 					{
-						if (entity.move(dt) === false)
-						{
-							_entities.removeAt(iEntity);
-							continue;
-						}
+						_entities.removeAt(iEntity);
+						continue;
 					}
 				}
 
@@ -237,7 +148,7 @@ function draw()
 							entity instanceof Fuel &&
 							entity.refuelBox.collide(ship.p, 0))
 						{
-							const df = Math.min(entity.fuel, dt * 3);
+							const df = Math.min(entity.fuel, dt * REFUEL_RATE);
 							entity.fuel -= df;
 							ship.fuel += df;
 							ship.refuel = true;
@@ -254,7 +165,7 @@ function draw()
 						if (entity.collide(ship.p, ship.r))
 						{
 							_entities.removeAt(iEntity);
-							level.startPos = entity.p;
+							level.checkpointPos = entity.p;
 							continue;
 						}
 					}
@@ -265,10 +176,10 @@ function draw()
 			{
 				ship.thrust = keys[KEY_THRUST] && ship.p.y > -MAX_HEIGHT && ship.fuel > 0;
 				if (ship.thrust)
-					ship.fuel = Math.max(0, ship.fuel - dt / 3);
+					ship.fuel = Math.max(0, ship.fuel - dt * THRUST_FUEL_RATE);
 
-				if (level.collideCircle(ship.p, ship.r) ||
-					level.collideCircle(ball.p, ball.r))
+				if (level.collideEntity(ship) ||
+					level.collideEntity(ball))
 				{
 					die();
 				}
@@ -280,7 +191,7 @@ function draw()
 						score += 2000;
 
 					currentLevel++;
-					loadLevel();
+					startLevel();
 				}
 
 				if (level.reactor.timeExplode && time > level.reactor.timeExplode)
@@ -309,6 +220,7 @@ function draw()
 	}
 
 
+	// move particles
 	for (let iParticle = Particle.particles.length - 1; iParticle >= 0; iParticle--)
 	{
 		const particle = Particle.particles[iParticle];
@@ -335,63 +247,63 @@ function draw()
 	const px = ship.p.x;
 	const py = ship.p.y;
 
-	if (py < height / 2 && random() < 0.1)
+	// draw sky
+	var yl = borderh * TILE_SIZE - py * RENDER_SCALE;
+	if (yl > 0)
 	{
-		const sy = py + (random() * 2 - 1) * height / 2;
-		if (sy < 0)
-		{
-			const sx = px + (random() * 2 - 1) * width / 2;
-			const star = new Star(new Vec2(sx, sy));
-			Particle.particles.push(star);
-		}
-	}
-
-	var yl = borderh*TILE_SIZE-py*2;
-	if (yl > 0) {
-		fill(0);
+		fill(0, 0, 0);
 		rect(0, 0, width, yl);
+
+		// add stars
+		if (random() < 0.1)
+		{
+			const sy = py + (random() * 2 - 1) * height / 2;
+			if (sy < 0)
+			{
+				const sx = px + (random() * 2 - 1) * width / 2;
+				const star = new Star(new Vec2(sx, sy));
+				Particle.particles.push(star);
+			}
+		}		
 	}
 
-	//background(0);
 	push();
-	//translate(width / 2 - px, height / 2 - py);
 	translate(width / 2, height / 2);
-	scale(2, 2);
+	//scale(2, 2);
+	scale(RENDER_SCALE, RENDER_SCALE);
 	translate(- px, - py);
-	stroke(0, 255, 0);
-	image(levelImg, 0, 0);
 
+	// draw level
+	image(levelImg, 0, 0);
 	if (px < width / 2)
 		image(levelImg, -levelImg.width, 0);
 	else if (px > levelImg.width - width / 2)
 		image(levelImg, levelImg.width, 0);
 
+	// draw particles
 	noStroke();
 	strokeWeight(0.25);
 	for (const particle of Particle.particles)
 		particle.draw(time);
-
-	stroke(255);
+	
+	// draw entities
+	stroke(255, 255, 255);
 	strokeWeight(1.3);
 	fill(0, 0, 0);
-
 	for (const entity of _entities)
 		entity.draw(time);
 
-		
+	// draw rod
+	stroke(level.color);
 	if (ship.rod)
-	{
 		ship.rod.draw();
-	}
 	else if (attaching)
-	{
-		stroke(level.color);
 		line(ship.p.x, ship.p.y, ball.p.x, ball.p.y);
-	}
 
 	pop();
 
-	fill(255);
+	// draw header
+	fill(255, 255, 255);
 	textSize(14);
 	textAlign(LEFT);
 	text("fuel", 10, 20);
@@ -413,8 +325,8 @@ function draw()
 			const reactor = level.reactor;
 			if (reactor && reactor.timeExplode > time)
 			{
-				stroke(255);
-				fill(255);
+				stroke(255, 255, 255);
+				fill(255, 255, 255);
 				textSize(30);
 				textAlign(CENTER);
 				text(floor(reactor.timeExplode - time).toString(), width / 2, height / 4);
@@ -422,7 +334,7 @@ function draw()
 			break;
 
 		case GameState.START:
-			fill(255);
+			fill(255, 255, 255);
 			noStroke();
 			textAlign(CENTER);
 			textSize(16);
@@ -457,7 +369,7 @@ function draw()
 
 		case GameState.OVER:
 			textSize(30);
-			fill(255);
+			fill(255, 255, 255);
 			textAlign(CENTER);
 			text("game over", width / 2, height / 3);
 			break;
@@ -469,17 +381,15 @@ function windowResized()
 	createCanvas(windowWidth, windowHeight);
 	borderw = Math.ceil(width / TILE_SIZE / 2);
 	borderh = Math.ceil(height / TILE_SIZE / 2);
+	RENDER_SCALE = Math.min(width, height) / 400;
 }
 
 function setup()
 {
-	createCanvas(windowWidth, windowHeight);
-	stroke(255);
-	fill(0);
+	windowResized();
+	stroke(255, 255, 255);
+	fill(0, 0, 0);
 	angleMode(DEGREES);
-
-	borderw = Math.ceil(width / TILE_SIZE / 2);
-	borderh = Math.ceil(height / TILE_SIZE / 2);
 
 	timePrev = millis() / 1000.0;
 
@@ -493,5 +403,5 @@ function setup()
 	);
 
 	initializeLevels();
-	loadLevel();
+	startLevel();
 }

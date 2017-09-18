@@ -1,5 +1,8 @@
 /// <reference path="particle.ts"/>
 
+const STAR_LIFE = 1;
+const STAR_RADIUS = 1;
+
 class Star extends Particle
 {
 	private readonly time: number;

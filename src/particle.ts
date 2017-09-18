@@ -2,6 +2,8 @@
 
 abstract class Particle extends Entity
 {
+	static particles = <Particle[]>[];
+
 	constructor(p: Vec2, r: number, public readonly v: Vec2)
 	{
 		super(p, r);
@@ -9,18 +11,13 @@ abstract class Particle extends Entity
 
 	move(dt: number)
 	{
-		const p = this.p;
-		p.addScale(this.v, dt);
-
-		return (abs(p.x - ship.p.x) < width &&
-			abs(p.y - ship.p.y) < width);
+		this.p.addScale(this.v, dt);
+		return true;
 	}
 
 	collideEntities(): Entity | null { return null; }
 
 	abstract draw(time: number): void;
-
-	static particles = <Particle[]>[];
 
 	static createExplosion(p: Vec2, r: number, c: number)
 	{

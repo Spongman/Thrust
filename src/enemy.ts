@@ -1,4 +1,9 @@
 /// <reference path="entity.ts"/>
+/// <reference path="level.ts"/>
+/// <reference path="bullet.ts"/>
+
+const ENEMY_FIRE_MIN = 1;
+const ENEMY_FIRE_MAX = 4;
 
 class Enemy extends Entity
 {
@@ -38,7 +43,7 @@ class Enemy extends Entity
 	}
 	draw()
 	{
-		fill(0);
+		fill(0, 0, 0);
 		stroke(level.ballColor);
 
 		push();

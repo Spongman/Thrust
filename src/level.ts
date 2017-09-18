@@ -1,13 +1,29 @@
 
+
+const START_LEVEL = 0;
+const TILE_SIZE = 40;
+const LAND_GAP = 40 / 8;
+const LAND_THICKNESS = 2;
+
+const SQRT5 = Math.sqrt(5);
+const SLOPE = Math.atan2(1, 2) * 360 / (2 * Math.PI);
+
+let level: Level;
+let levelImg: p5.Image;
+let currentLevel = START_LEVEL;
+
+let borderw: number, borderh: number;
+
 class Level
 {
 	reactor: Reactor;
 	ballPos: Vec2;
-	startPos: Vec2;
+	checkpointPos: Vec2;
 
 	constructor(
 		public readonly color: p5.Color,
 		public readonly ballColor: p5.Color,
+		public readonly startPos: Vec2,
 		public readonly lines: string[])
 	{
 	}
@@ -28,8 +44,7 @@ class Level
 		//img.sourceImg = gr.externals.canvas;
 		//img.remote = true;
 
-
-		this.startPos = new Vec2(width / 2 + 2 * TILE_SIZE, -2 * TILE_SIZE);
+		this.checkpointPos = new Vec2((borderw + 0.5) * TILE_SIZE, 0).plusScale(level.startPos, TILE_SIZE);
 		
 		//gr.beginDraw();
 		gr.background(0);
@@ -253,8 +268,10 @@ class Level
 		}
 	}
 
-	collideCircle(p: Vec2, r: number)
+	collideEntity(entity: Entity)
 	{
+		const p = entity.p;
+		const r = entity.r;
 		const px = (p.x + TILE_SIZE * 1000) % TILE_SIZE;
 		const py = (p.y + TILE_SIZE * 1000) % TILE_SIZE;
 
@@ -290,15 +307,17 @@ function initializeLevels()
 		new Level(
 			color(255, 0, 0),
 			color(0, 255, 0),
+			new Vec2(5, -2),
 			[
 				"00000000000k000a0",
-				"1230b000000000111",
+				"12300b00000000111",
 				"11111112c000g0111",
 			],
 		),
 		new Level(
 			color(0, 255, 0),
 			color(255, 0, 0),
+			new Vec2(2, -2),
 			[
 				"0a000000000k0000000451123",
 				"1112300000000000045111111",
@@ -319,6 +338,7 @@ function initializeLevels()
 		new Level(
 			color(0, 255, 255),
 			color(0, 255, 0),
+			new Vec2(10, -2),
 			[
 				"10000000000b00000000000",
 				"11111111111111100000001",
@@ -351,6 +371,7 @@ function initializeLevels()
 		new Level(
 			color(0, 255, 0),
 			color(255, 0, 255),
+			new Vec2(6, -2),
 			[
 				"1112300000001111111111",
 				"1111123000001111111111",
@@ -389,6 +410,7 @@ function initializeLevels()
 		new Level(
 			color(255, 0, 0),
 			color(255, 0, 255),
+			new Vec2(5, -2),
 			[
 				"0000000k0000000000000",
 				"111230000001111111111",
@@ -441,6 +463,7 @@ function initializeLevels()
 		new Level(
 			color(255, 255, 0),
 			color(0, 255, 0),
+			new Vec2(5, -2),
 			[
 				"0000000000000000000000000001111111111123000",
 				"0451230045123000000045111001111111111111230",

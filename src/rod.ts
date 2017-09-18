@@ -21,7 +21,6 @@ class Rod extends Entity
 
 	draw()
 	{
-		stroke(level.color);
 		line(ship.p.x, ship.p.y, ball.p.x, ball.p.y);
 	}
 
@@ -31,7 +30,7 @@ class Rod extends Entity
 		for (let i = 0; i < cr; i++)
 		{
 			const rp = ship.p.times(i / cr).plus(ball.p.times(1 - i / cr));
-			Particle.createExplosion(rp, 5, 1);
+			Particle.createExplosion(rp, 3, 1);
 		}
 	}
 }

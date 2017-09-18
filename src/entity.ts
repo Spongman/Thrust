@@ -1,3 +1,6 @@
+/// <reference path="global.ts"/>
+
+const EXPLOSION_DENSITY = 8;
 
 abstract class Entity
 {
@@ -42,3 +45,5 @@ abstract class Entity
 	move(_dt: number) { return true; }
 	damage(_friendly: boolean) { return false; }
 }
+
+const _entities: Entity[] = [];

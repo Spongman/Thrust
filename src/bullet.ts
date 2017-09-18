@@ -1,5 +1,8 @@
 /// <reference path="particle.ts"/>
 
+const BULLET_RADIUS = 1.5;
+const BULLET_SPEED = 250;
+
 class Bullet extends Particle
 {
 	friendly = false;
@@ -12,7 +15,7 @@ class Bullet extends Particle
 	draw()
 	{
 		noStroke();
-		fill(255);
+		fill(255, 255, 255);
 		ellipse(this.p.x, this.p.y, BULLET_RADIUS * 2, BULLET_RADIUS * 2);
 	}
 

@@ -1,5 +1,8 @@
 /// <reference path="boxEntity.ts"/>
 
+const REACTOR_LIFE = 10;
+const REACTOR_HEAL = 1 / 4;
+
 class Reactor extends BoxEntity
 {
 	invincible = true;
@@ -31,7 +34,7 @@ class Reactor extends BoxEntity
 
 		ellipse(20, 22, 30, 24);
 
-		fill(0);
+		fill(0, 0, 0);
 		stroke(level.ballColor);
 
 		beginShape();

@@ -1,5 +1,10 @@
 /// <reference path="entity.ts"/>
 
+const BALL_RADIUS = 10;
+const BALL_WEIGHT = 0.75;
+
+/// <reference path="ship.ts"/>
+
 class Ball extends Entity
 {
 	invincible = true;
@@ -29,3 +34,5 @@ class Ball extends Entity
 		return false;
 	}
 }
+
+let ball: Ball;

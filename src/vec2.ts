@@ -57,6 +57,14 @@ class Vec2
 		);
 	}
 
+	plusScale(other: Vec2, scale: number)
+	{
+		return new Vec2(
+			this.x + other.x * scale,
+			this.y + other.y * scale
+		);
+	}
+
 	minus(other: Vec2)
 	{
 		return new Vec2(

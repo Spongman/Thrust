@@ -4,7 +4,7 @@ var ts = require('gulp-typescript');
 var watch = require('gulp-watch');
 //var browserify = require('browserify');
 //var source = require('vinyl-source-stream');
-var less = require('gulp-less');
+//var less = require('gulp-less');
 var connect = require('gulp-connect');
 //var uglify = require('gulp-uglify');
 var uglifyes = require('uglify-es');
@@ -13,7 +13,7 @@ var uglify = composer(uglifyes, console);
 
 var sourcemaps = require('gulp-sourcemaps');
 var buffer = require('vinyl-buffer');
-var uglifycss = require('gulp-uglifycss');
+//var uglifycss = require('gulp-uglifycss');
 var clean = require('gulp-clean');
 
 const config = {
@@ -32,7 +32,7 @@ gulp.task('typescript', function () {
 		'./src/tsconfig.json', {
 			removeComments: config.production,
 			experimentalAsyncFunctions: !config.production,
-			target: config.production ? "ES5" : "es2017"
+			target: config.production ? "ES5" : "es3"
 		}
 	);
 	return tsProject.src()
@@ -84,7 +84,6 @@ gulp.task('assets', function () {
 });
 /*
 compile less files
-*/
 gulp.task('less', function () {
 	gulp.src('src/styles/style.less')
 		.pipe(less())
@@ -96,24 +95,26 @@ gulp.task('less', function () {
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('dist/styles'));
 });
+*/
+
 /*
 browserify
 now is only for Javascript files
-*/
 gulp.task('browserify', function () {
 	browserify('./dist/js/index.js')
 		.bundle()
 		.pipe(source('index.js'))
 		.pipe(gulp.dest('dist'));
 });
+*/
 
 /*
 Watch typescript and less
 */
 gulp.task('watch', function () {
-	gulp.watch('src/styles/*.less', ['less']);
+	//gulp.watch('src/styles/*.less', ['less']);
 	gulp.watch(['src/**/*.ts', 'src/**/*.tsx'], ['typescript'/*, 'browserify'*/]);
-	gulp.watch('src/**/*.js', ['javascript']);
+	//gulp.watch('src/**/*.js', ['javascript']);
 	gulp.watch('src/**/*.html', ['html']);
 	gulp.watch('assets/**/*.*', ['assets']);
 });
@@ -132,7 +133,7 @@ default task
 */
 
 gulp.task('default',
-	['less', 'typescript', 'javascript', 'html', 'assets']);
+	[/*'less',*/ 'typescript', /*'javascript',*/ 'html', 'assets']);
 
 gulp.task('serve',
 	['default', 'webserver', 'livereload', 'watch']);

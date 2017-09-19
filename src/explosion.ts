@@ -15,8 +15,7 @@ class Explosion extends Particle
 	{
 		noStroke();
 		const t = (time - this.time) / this.life;
-		const color = this.color;
-		fill(color[0], color[1], color[2], 255 * (1 - t * t));
+		fill(this.color, 255 * (1 - t * t));
 		ellipse(this.p.x, this.p.y, this.r * 2, this.r * 2);
 	}
 

@@ -21,7 +21,9 @@ class Bullet extends Particle
 
 	move(dt: number)
 	{
-		return super.move(dt) && !level.collidePoint(this.p, this.r);
+		return super.move(dt) &&
+			this.p.y > -MAX_HEIGHT &&
+			!level.collidePoint(this.p, this.r);
 	}
 
 	collideEntities()

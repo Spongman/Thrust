@@ -119,6 +119,8 @@ function resetLevel()
 	setGame(GameState.START);
 }
 
+let starSum = 0;
+
 function draw()
 {
 	time = millis() / 1000.0;
@@ -228,7 +230,8 @@ function draw()
 				if (level.reactor.timeExplode && time > level.reactor.timeExplode)
 				{
 					for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
-						_entities[iEntity].kill();
+						if (iEntity <= _entities.length)
+							_entities[iEntity].kill();
 
 					waitTime = time + 3;
 					setGame(GameState.DESTROYED);
@@ -278,6 +281,11 @@ function draw()
 		const px = ship.p.x;
 		const py = ship.p.y;
 
+		const sw = width / RENDER_SCALE;
+		const sh = height / RENDER_SCALE;
+
+		noStroke();
+		
 		// draw sky
 
 		var yl = height/2 - py * RENDER_SCALE + 1;
@@ -287,24 +295,26 @@ function draw()
 			rect(0, 0, width, yl);
 
 			// add stars
-			if (random() < 0.1)
+			starSum += random(width * yl) / 5000000;
+			while (starSum > 1)
 			{
-				const sy = py + (random() * 2 - 1) * height / 2;
-				if (sy < 0)
-				{
-					const sx = px + (random() * 2 - 1) * width / 2;
-					const star = new Star(new Vec2(sx, sy));
-					Particle.particles.push(star);
-				}
-			}		
+				starSum -= 1;
+
+				const syMin = py - sh/2;
+				const syMax = Math.min(0, py + sh/2);
+
+				const sy = random(syMin, syMax);
+				const sx = px + random(-1,1) * sw/2;
+				const star = new Star(new Vec2(sx, sy));
+				Particle.particles.push(star);
+			} 
 		}
 
 		push();
 		translate(width / 2, height / 2);
-		//scale(2, 2);
 		scale(RENDER_SCALE, RENDER_SCALE);
 		translate(- px, - py);
-
+		
 		// draw level
 		image(levelImg, 0, 0);
 		if (px < width / 2)
@@ -313,7 +323,6 @@ function draw()
 			image(levelImg, levelImg.width, 0);
 
 		// draw particles
-		noStroke();
 		strokeWeight(0.25);
 		for (const particle of Particle.particles)
 			particle.draw(time);
@@ -323,7 +332,13 @@ function draw()
 		strokeWeight(1.3);
 		fill(0, 0, 0);
 		for (const entity of _entities)
-			entity.draw(time);
+		{
+			if (Math.abs(entity.p.x - px) <= sw/2 + TILE_SIZE &&
+				Math.abs(entity.p.y - py) <= sh/2 + TILE_SIZE)
+			{
+				entity.draw(time);
+			}
+		}
 
 		// draw rod
 		stroke(level.color);
@@ -438,9 +453,9 @@ function draw()
 
 				fill(level.ballColor);
 				textAlign(RIGHT, TOP);
-				text("MISSION", width/2-8, height / 3 + fontHeight*2, 0, height);
+				text("MISSION", width/2-fontHeight/2, height / 3 + fontHeight*2, 0, height);
 				textAlign(LEFT, TOP);
-				text(ship.rod ? "COMPLETE" : "FAILED", width/2+8, height / 3 + fontHeight*2, 0, height);
+				text(ship.rod ? "COMPLETE" : "FAILED", width/2+fontHeight/2, height / 3 + fontHeight*2, 0, height);
 
 				fill(255, 255, 0);
 				textAlign(CENTER, TOP);
@@ -465,6 +480,7 @@ function draw()
 
 function preload()
 {
+	p5.disableFriendlyErrors = true;
 	font = loadFont("assets/supersimf.ttf");
 }
 

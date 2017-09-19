@@ -24,3 +24,4 @@ declare namespace p5
         [key: number]: number;
     }
 }
+

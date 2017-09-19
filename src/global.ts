@@ -1,12 +1,13 @@
 let time: number;
-let score: number;
+let score: number = 0;
 
 declare function die(): void;
 
 
 declare interface Array<T>
 {
-	removeAt(i: number): T;
+    removeAt(i: number): T;
+    remove(e: T): void;
 }
 
 

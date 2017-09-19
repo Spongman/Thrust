@@ -10,7 +10,7 @@ const SHIELD_FUEL_RATE = 1/5;
 const REFUEL_RATE = 3;
 const THRUST_FUEL_RATE = 1/9;
 
-const CABLE_LENGTH = 80;
+const CABLE_LENGTH = 70;
 const TOTAL_WEIGHT = SHIP_WEIGHT + BALL_WEIGHT;
 const BALL_FRACTION = SHIP_WEIGHT / TOTAL_WEIGHT;
 const SHIP_FRACTION = BALL_WEIGHT / TOTAL_WEIGHT;
@@ -22,7 +22,7 @@ const INERTIA = SHIP_WEIGHT * SHIP_DISTANCE * SHIP_DISTANCE +
 
 const FRICTION = 1;//0.99;
 
-const G = 40;
+const G = 45;
 const CABLE_FORCE = G / 40;
 
 class Ship extends Entity
@@ -31,6 +31,7 @@ class Ship extends Entity
 
 	dir = new Vec2(0, 0);
 	v = new Vec2(0, 0);
+	a = -90;
 	thrust = false;
 	shield = false;
 	refuel = false;
@@ -38,11 +39,11 @@ class Ship extends Entity
 
 	timeFire = 0;
 
-	constructor(p: Vec2, public a: number)
+	constructor()
 	{
-		super(p, SHIP_RADIUS);
+		super(new Vec2(0, 0), SHIP_RADIUS);
 
-		this.rotateTo(a || 0);
+		this.rotateTo(-90);
 	}
 
 	reset()

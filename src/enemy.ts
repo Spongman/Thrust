@@ -2,7 +2,7 @@
 /// <reference path="level.ts"/>
 /// <reference path="bullet.ts"/>
 
-const ENEMY_FIRE_MIN = 1;
+const ENEMY_FIRE_MIN = 0.5;
 const ENEMY_FIRE_MAX = 4;
 
 class Enemy extends Entity
@@ -78,7 +78,7 @@ class Enemy extends Entity
 		if (!level.reactor.isDamaged() &&
 			(!this.timeFire || time > this.timeFire))
 		{
-			this.timeFire = time + random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX);
+			this.timeFire = time + (random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX) + random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX)) / 2;
 
 			const av = (random(-95, 95) + random(-95, 95) + random(-95, 95)) / 3;
 			const bd = Vec2.fromAngle(this.ba + av);

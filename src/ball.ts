@@ -9,9 +9,9 @@ class Ball extends Entity
 {
 	invincible = true;
 
-	constructor(p: Vec2)
+	constructor()
 	{
-		super(p, BALL_RADIUS);
+		super(new Vec2(0, 0), BALL_RADIUS);
 	}
 
 	reset()

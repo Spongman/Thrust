@@ -1,6 +1,9 @@
 
 let RENDER_SCALE = 0.5;
-	
+let bonus: number;
+let font: p5.Font;
+let fontHeight: number;
+
 const MAX_HEIGHT = TILE_SIZE * 15;
 
 const KEY_LEFT = 'Z'.charCodeAt(0);
@@ -10,10 +13,10 @@ const KEY_THRUST = 16;//SHIFT;
 const KEY_SHIELD = ' '.charCodeAt(0);
 
 const instrs = [
-	"z, x : rotate",
-	"enter : fire",
-	"space : shield / tractor",
-	"shift : thrust",
+	"Z, X : ROTATE",
+	"ENTER : FIRE",
+	"SPACE : SHIELD / TRACTOR",
+	"SHIFT : THRUST",
 ];
 
 
@@ -23,6 +26,8 @@ enum GameState
 	PLAY,
 	DEATH,
 	OVER,
+	ORBIT,
+	DESTROYED,
 }
 
 let gameState = GameState.START;
@@ -35,6 +40,8 @@ function setGame(state: GameState)
 	switch(gameState)
 	{
 		case GameState.DEATH:
+		case GameState.ORBIT:
+		case GameState.DESTROYED:
 		case GameState.OVER:
 			if (ship.fuel < 0)
 				ship.fuel = 0;
@@ -46,10 +53,9 @@ function setGame(state: GameState)
 
 let timePrev: number;
 
-let timeFire = 0;
 let waitTime: number;
 
-let paused: boolean = false;
+//let paused: boolean = false;
 
 let wasAttaching: boolean;
 
@@ -69,6 +75,18 @@ function die()
 	setGame(GameState.DEATH);
 }
 
+function newGame()
+{
+	ball = new Ball();
+	ship = new Ship();
+
+	score = 0;
+	lives = 3;
+	
+	currentLevel = START_LEVEL;
+	startLevel();
+}
+
 function startLevel()
 {
 	_entities.length = 0;
@@ -83,8 +101,12 @@ function startLevel()
 
 function resetLevel()
 {
-	if (_entities.indexOf(ship) < 0)
-		_entities.unshift(ship);
+	timePrev = millis() / 1000.0;
+	
+	_entities.remove(ship);
+	_entities.remove(ball);
+	_entities.remove(level.reactor);
+	_entities.push(ship, ball, level.reactor);
 
 	ball.reset();
 	ship.reset();
@@ -93,6 +115,7 @@ function resetLevel()
 
 	wasAttaching = false;
 
+	bonus = 0;
 	setGame(GameState.START);
 }
 
@@ -124,6 +147,9 @@ function draw()
 
 			for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
 			{
+				if (iEntity >= _entities.length)
+					continue;	// handle when multiple entries are removed (eg ship & ball)
+
 				const entity = _entities[iEntity];
 				if (entity !== ship || gameState === GameState.PLAY)
 				{
@@ -142,6 +168,7 @@ function draw()
 							entity !== ball && entity.collide(ball.p, ball.r))
 						{
 							die();
+							continue;
 						}
 
 						if (ship.shield &&
@@ -184,14 +211,18 @@ function draw()
 					die();
 				}
 
-				if (ship.rod && ship.p.y < -MAX_HEIGHT)
+				if (ship.p.y < -MAX_HEIGHT)
 				{
-					score += 1000;
-					if (level.reactor.life <= 0)
-						score += 2000;
+					if (ship.rod)
+					{
+						bonus += 2000;
 
-					currentLevel++;
-					startLevel();
+						if (level.reactor.life <= 0)
+							bonus += 2000;
+					}
+						
+					waitTime = time + 3;
+					setGame(GameState.ORBIT);
 				}
 
 				if (level.reactor.timeExplode && time > level.reactor.timeExplode)
@@ -199,8 +230,8 @@ function draw()
 					for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
 						_entities[iEntity].kill();
 
-					waitTime = time + 1.5;
-					setGame(GameState.DEATH);
+					waitTime = time + 3;
+					setGame(GameState.DESTROYED);
 				}
 			}
 			else if (gameState === GameState.START)
@@ -212,111 +243,115 @@ function draw()
 			wasAttaching = attaching;
 
 			break;
-
-		case GameState.START:
-			if (keys[KEY_THRUST])
-				setGame(GameState.PLAY);
-			break;
 	}
 
-
-	// move particles
-	for (let iParticle = Particle.particles.length - 1; iParticle >= 0; iParticle--)
+	if (gameState === GameState.ORBIT)
 	{
-		const particle = Particle.particles[iParticle];
-		if (particle.move(dt) === false)
+		background(0, 0, 0);
+	}
+	else
+	{
+		// move particles
+		for (let iParticle = Particle.particles.length - 1; iParticle >= 0; iParticle--)
 		{
-			Particle.particles.removeAt(iParticle);
-			continue;
-		}
-
-		const entity = particle.collideEntities();
-		if (entity)
-		{
-			Particle.particles.removeAt(iParticle);
-
-			if (gameState === GameState.PLAY &&
-				particle instanceof Bullet &&
-				entity.damage(particle.friendly))
+			const particle = Particle.particles[iParticle];
+			if (particle.move(dt) === false)
 			{
-				Particle.createExplosion(particle.p, 0, 4);
+				Particle.particles.removeAt(iParticle);
+				continue;
+			}
+
+			const entity = particle.collideEntities();
+			if (entity)
+			{
+				Particle.particles.removeAt(iParticle);
+
+				if (gameState === GameState.PLAY &&
+					particle instanceof Bullet &&
+					entity.damage(particle.friendly))
+				{
+					Particle.createExplosion(particle.p, 0, 4);
+				}
 			}
 		}
-	}
 
-	const px = ship.p.x;
-	const py = ship.p.y;
+		const px = ship.p.x;
+		const py = ship.p.y;
 
-	// draw sky
-	var yl = borderh * TILE_SIZE - py * RENDER_SCALE;
-	if (yl > 0)
-	{
+		// draw sky
+
+		var yl = height/2 - py * RENDER_SCALE + 1;
+		if (yl > 0)
+		{
+			fill(0, 0, 0);
+			rect(0, 0, width, yl);
+
+			// add stars
+			if (random() < 0.1)
+			{
+				const sy = py + (random() * 2 - 1) * height / 2;
+				if (sy < 0)
+				{
+					const sx = px + (random() * 2 - 1) * width / 2;
+					const star = new Star(new Vec2(sx, sy));
+					Particle.particles.push(star);
+				}
+			}		
+		}
+
+		push();
+		translate(width / 2, height / 2);
+		//scale(2, 2);
+		scale(RENDER_SCALE, RENDER_SCALE);
+		translate(- px, - py);
+
+		// draw level
+		image(levelImg, 0, 0);
+		if (px < width / 2)
+			image(levelImg, -levelImg.width, 0);
+		else if (px > levelImg.width - width / 2)
+			image(levelImg, levelImg.width, 0);
+
+		// draw particles
+		noStroke();
+		strokeWeight(0.25);
+		for (const particle of Particle.particles)
+			particle.draw(time);
+
+		// draw entities
+		stroke(255, 255, 255);
+		strokeWeight(1.3);
 		fill(0, 0, 0);
-		rect(0, 0, width, yl);
+		for (const entity of _entities)
+			entity.draw(time);
 
-		// add stars
-		if (random() < 0.1)
-		{
-			const sy = py + (random() * 2 - 1) * height / 2;
-			if (sy < 0)
-			{
-				const sx = px + (random() * 2 - 1) * width / 2;
-				const star = new Star(new Vec2(sx, sy));
-				Particle.particles.push(star);
-			}
-		}		
+		// draw rod
+		stroke(level.color);
+		if (ship.rod)
+			ship.rod.draw();
+		else if (attaching)
+			line(ship.p.x, ship.p.y, ball.p.x, ball.p.y);
+
+		pop();
 	}
-
-	push();
-	translate(width / 2, height / 2);
-	//scale(2, 2);
-	scale(RENDER_SCALE, RENDER_SCALE);
-	translate(- px, - py);
-
-	// draw level
-	image(levelImg, 0, 0);
-	if (px < width / 2)
-		image(levelImg, -levelImg.width, 0);
-	else if (px > levelImg.width - width / 2)
-		image(levelImg, levelImg.width, 0);
-
-	// draw particles
-	noStroke();
-	strokeWeight(0.25);
-	for (const particle of Particle.particles)
-		particle.draw(time);
-	
-	// draw entities
-	stroke(255, 255, 255);
-	strokeWeight(1.3);
-	fill(0, 0, 0);
-	for (const entity of _entities)
-		entity.draw(time);
-
-	// draw rod
-	stroke(level.color);
-	if (ship.rod)
-		ship.rod.draw();
-	else if (attaching)
-		line(ship.p.x, ship.p.y, ball.p.x, ball.p.y);
-
-	pop();
 
 	// draw header
+
+	fill(0, 0, 0, 64);
+	rect(0, 0, width, fontHeight * 2 + fontHeight);
+
 	fill(255, 255, 255);
-	textSize(14);
-	textAlign(LEFT);
-	text("fuel", 10, 20);
-	text((ship.fuel * 100).toFixed(), 10, 35);
+	textAlign(LEFT, TOP);
+	text("FUEL", fontHeight/2, fontHeight/2);
+	text((ship.fuel * 100).toFixed(), fontHeight/2, fontHeight*3/2);
 
-	textAlign(RIGHT);
-	text("score", width - 10, 20);
-	text("" + score, width - 10, 35);
+	textAlign(RIGHT, TOP);
+	text("SCORE", width - fontHeight/2, fontHeight/2);
+	text("" + score, width - fontHeight/2, fontHeight*3/2);
 
-	textAlign(CENTER);
-	text("lives", width / 2, 20);
-	text("" + lives, width / 2, 35);
-
+	textAlign(CENTER, TOP);
+	text("LIVES", width / 2, fontHeight/2);
+	text("" + lives, width / 2, fontHeight*3/2);
 
 	switch (gameState)
 	{
@@ -327,8 +362,7 @@ function draw()
 			{
 				stroke(255, 255, 255);
 				fill(255, 255, 255);
-				textSize(30);
-				textAlign(CENTER);
+				textAlign(CENTER, TOP);
 				text(floor(reactor.timeExplode - time).toString(), width / 2, height / 4);
 			}
 			break;
@@ -336,23 +370,21 @@ function draw()
 		case GameState.START:
 			fill(255, 255, 255);
 			noStroke();
-			textAlign(CENTER);
-			textSize(16);
-			text("thrust to start", 0, height / 2 + 110, width, height);
+			textAlign(CENTER, TOP);
+			text("THRUST TO START", 0, height * 2 / 3 + fontHeight * 2, width, height);
 
 			if (score === 0)
 			{
-				text("rescue the pod", 0, height / 2 + 50, width, height);
-				text("destroy the reactor", 0, height / 2 + 66, width, height);
-				text("escape to orbit", 0, height / 2 + 82, width, height);
+				text("RESCUE THE POD", 0, height * 2 / 3 - fontHeight, width, height);
+				text("DESTROY THE REACTOR", 0, height * 2 / 3 + 0, width, height);
+				text("ESCAPE TO ORBIT", 0, height * 2 / 3 + fontHeight, width, height);
 
-				textAlign(LEFT);
-				textSize(20);
+				textAlign(LEFT, TOP);
 				for (let i = 0; i < instrs.length; i++)
 				{
 					const it = instrs[i];
 					const mt = textWidth(it.substr(0, it.indexOf(':') + 1));
-					text(it, width / 2 - mt, 60 + i * 20, width, height);
+					text(it, width / 2 - mt, height / 3 + (i - instrs.length * 2 / 3) * fontHeight, width, height);
 				}
 			}
 			break;
@@ -363,45 +395,100 @@ function draw()
 				if (--lives >= 0 && ship.fuel > 0)
 					resetLevel();
 				else
+				{
+					waitTime = time + 2;
 					setGame(GameState.OVER);
+				}
 			}
 			break;
 
 		case GameState.OVER:
-			textSize(30);
 			fill(255, 255, 255);
-			textAlign(CENTER);
-			text("game over", width / 2, height / 3);
+			textAlign(CENTER, TOP);
+			text("GAME OVER", width / 2, height / 3);
+
+			if (time > waitTime)
+			{
+				text("THRUST TO START", 0, height * 2 / 3 + fontHeight * 2, width, height);
+				if (keys[KEY_THRUST])
+				{
+					newGame();
+				}
+			}
+			break;
+
+		case GameState.ORBIT:
+
+			noStroke();
+			textAlign(CENTER, TOP);
+
+			let nextLevel = ship.rod || level.reactor.life <= 0;
+			if (!nextLevel)
+			{
+				fill(level.ballColor);
+				text("MISSION INCOMPLETE", 0, height / 3, width, height);
+			}
+			else
+			{
+				if (level.reactor.life <= 0)
+				{
+					fill(level.color);
+					text("PLANET DESTROYED", 0, height / 3 + 0, width, height);
+				}
+
+				fill(level.ballColor);
+				textAlign(RIGHT, TOP);
+				text("MISSION", width/2-8, height / 3 + fontHeight*2, 0, height);
+				textAlign(LEFT, TOP);
+				text(ship.rod ? "COMPLETE" : "FAILED", width/2+8, height / 3 + fontHeight*2, 0, height);
+
+				fill(255, 255, 0);
+				textAlign(CENTER, TOP);
+				text((currentLevel + 1).toString(), 0, height / 3 + fontHeight*2, width, height);
+				text(ship.rod ? "BONUS " + bonus : "NO BONUS", 0, height / 3 + fontHeight*4, width, height);
+			}
+	
+			if (time > waitTime && !keys[KEY_THRUST])
+			{
+				if (nextLevel)
+					++currentLevel;
+				startLevel();
+			}
+			break;
+
+		case GameState.DESTROYED:
+			if (time > waitTime && !keys[KEY_THRUST])
+				startLevel();
 			break;
 	}
+}
+
+function preload()
+{
+	font = loadFont("assets/supersimf.ttf");
 }
 
 function windowResized()
 {
 	createCanvas(windowWidth, windowHeight);
-	borderw = Math.ceil(width / TILE_SIZE / 2);
-	borderh = Math.ceil(height / TILE_SIZE / 2);
 	RENDER_SCALE = Math.min(width, height) / 400;
+	textSize(Math.ceil(17 * RENDER_SCALE));
+	fontHeight = Math.ceil(17 * RENDER_SCALE);
 }
 
 function setup()
 {
 	windowResized();
+	borderw = Math.ceil(width / TILE_SIZE / 2);
+	borderh = Math.ceil(height / TILE_SIZE / 2);
+
+	textFont(font);
+	
 	stroke(255, 255, 255);
 	fill(0, 0, 0);
 	angleMode(DEGREES);
 
-	timePrev = millis() / 1000.0;
-
-	ball = new Ball(
-		new Vec2(30, 30)
-	);
-
-	ship = new Ship(
-		new Vec2(width / 2, -100),
-		-90
-	);
-
 	initializeLevels();
-	startLevel();
+
+	newGame();
 }

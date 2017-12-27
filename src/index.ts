@@ -486,6 +486,7 @@ function preload()
 
 function windowResized()
 {
+	pixelDensity(1);
 	createCanvas(windowWidth, windowHeight);
 	RENDER_SCALE = Math.min(width, height) / 400;
 	textSize(Math.ceil(17 * RENDER_SCALE));

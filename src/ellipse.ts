@@ -1,5 +1,7 @@
+import { Vec2 } from './vec2';
 
-class Ellipse
+
+export class Ellipse
 {
 	private readonly cosa: number;
 	private readonly sina: number;

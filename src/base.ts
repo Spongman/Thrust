@@ -1,7 +1,12 @@
-/// <reference path="boxEntity.ts"/>
-/// <reference path="level.ts"/>
+/////// <reference path="boxEntity.ts"/>
+/////// <reference path="level.ts"/>
 
-class Base extends BoxEntity
+import { Vec2 } from './vec2';
+import { BoxEntity } from './boxEntity';
+import { Box } from './box';
+import { TILE_SIZE } from './game';
+
+export class Base extends BoxEntity
 {
 	invicible = false;
 

@@ -1,5 +1,6 @@
+import { Vec2 } from './vec2';
 
-class Box
+export class Box
 {
 	constructor(public readonly x: number, public readonly y: number, public readonly w: number, public readonly h: number)
 	{

@@ -1,11 +1,18 @@
-/// <reference path="entity.ts"/>
-/// <reference path="level.ts"/>
-/// <reference path="bullet.ts"/>
+///// <reference path="entity.ts"/>
+///// <reference path="level.ts"/>
+///// <reference path="bullet.ts"/>
+import { Vec2 } from './vec2';
+import { Entity } from './entity';
+import { Ellipse } from './ellipse';
+import { Bullet, BULLET_SPEED } from './bullet';
+import { Game } from './game';
 
 const ENEMY_FIRE_MIN = 0.5;
 const ENEMY_FIRE_MAX = 4;
 
-class Enemy extends Entity
+const SLOPE = Math.atan2(1, 2) * 360 / (2 * Math.PI);
+
+export class Enemy extends Entity
 {
 	private readonly sx: number;
 	private readonly sy: number;
@@ -44,7 +51,7 @@ class Enemy extends Entity
 	draw()
 	{
 		fill(0, 0, 0);
-		stroke(level.ballColor);
+		stroke(Game.level.ballColor);
 
 		push();
 
@@ -75,14 +82,14 @@ class Enemy extends Entity
 
 	move(_dt: number)
 	{
-		if (!level.reactor.isDamaged() &&
-			(!this.timeFire || time > this.timeFire))
+		if (!Game.level.reactor.isDamaged() &&
+			(!this.timeFire || Game.time > this.timeFire))
 		{
-			this.timeFire = time + (random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX) + random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX)) / 2;
+			this.timeFire = Game.time + (random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX) + random(ENEMY_FIRE_MIN, ENEMY_FIRE_MAX)) / 2;
 
 			const av = (random(-95, 95) + random(-95, 95) + random(-95, 95)) / 3;
 			const bd = Vec2.fromAngle(this.ba + av);
-			Particle.particles.push(new Bullet(this.bp.clone(), bd.times(BULLET_SPEED)));
+			Game.particles.push(new Bullet(this.bp.clone(), bd.times(BULLET_SPEED)));
 		}
 		return true;
 	}
@@ -96,7 +103,7 @@ class Enemy extends Entity
 	{
 		if (friendly)
 		{
-			score += this.score;
+			Game.score += this.score;
 			this.kill();
 		}
 		return false;

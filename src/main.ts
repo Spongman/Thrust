@@ -1,10 +1,20 @@
+import { Ball } from "./ball";
+import { Ship } from "./ship";
+import { Bullet } from "./bullet";
+import { Star } from "./star";
+import { Vec2 } from "./vec2";
+import { Level, MAX_HEIGHT, borderw, borderh } from "./level";
+import { Fuel } from "./fuel";
+import { Checkpoint } from "./checkpoint";
+import { Entity } from "./entity";
+import { Game, TILE_SIZE } from './game';
+import { Explosion } from "./explosion";
+///// <reference path="level.ts"/>
 
 let RENDER_SCALE = 0.5;
 let bonus: number;
 let font: p5.Font;
 let fontHeight: number;
-
-const MAX_HEIGHT = TILE_SIZE * 15;
 
 const KEY_LEFT = 'Z'.charCodeAt(0);
 const KEY_RIGHT = 'X'.charCodeAt(0);
@@ -18,7 +28,6 @@ const instrs = [
 	"SPACE : SHIELD / TRACTOR",
 	"SHIFT : THRUST",
 ];
-
 
 enum GameState
 {
@@ -37,19 +46,24 @@ function setGame(state: GameState)
 		return;
 
 	gameState = state;
-	switch(gameState)
+	switch (gameState)
 	{
 		case GameState.DEATH:
 		case GameState.ORBIT:
 		case GameState.DESTROYED:
 		case GameState.OVER:
-			if (ship.fuel < 0)
-				ship.fuel = 0;
-			if (lives < 0)
-				lives = 0;
+			if (Game.ship.fuel < 0)
+				Game.ship.fuel = 0;
+			if (Game.lives < 0)
+				Game.lives = 0;
 			break;
 	}
 }
+
+const START_LEVEL = 0;
+const THRUST_FUEL_RATE = 1 / 9;
+const REFUEL_RATE = 3;
+const TURN_SPEED = 275;
 
 let timePrev: number;
 
@@ -59,42 +73,36 @@ let waitTime: number;
 
 let wasAttaching: boolean;
 
-let lives = 3;
+
+export let currentLevel = START_LEVEL;
 
 
 const keys: { [key: number]: boolean } = {};
-function keyPressed() { keys[+keyCode] = true; }
-function keyReleased() { keys[+keyCode] = false; }
-
-function die()
-{
-	ship.kill();
-
-	waitTime = time + 1.5;
-
-	setGame(GameState.DEATH);
-}
+window['keyPressed'] = function () { keys[+keyCode] = true; }
+window['keyReleased'] = function () { keys[+keyCode] = false; }
 
 function newGame()
 {
-	ball = new Ball();
-	ship = new Ship();
+	Game.ball = new Ball(color(255));
+	Game.ship = new Ship();
 
-	score = 0;
-	lives = 3;
-	
+	Game.score = 0;
+	Game.lives = 3;
+
 	currentLevel = START_LEVEL;
 	startLevel();
 }
 
 function startLevel()
 {
-	_entities.length = 0;
-	_entities.push(ship, ball);
+	Game.entities.length = 0;
+	Game.entities.push(Game.ship, Game.ball);
 
-	level = levels[currentLevel];
-	const levelInfo = level.load(_entities);
-	levelImg = levelInfo.image;
+	Game.level = Level.levels[currentLevel];
+	const levelInfo = Game.level.load(Game.entities);
+	Game.levelImg = levelInfo.image;
+
+	Game.ball.ballColor = Game.level.ballColor;
 
 	resetLevel();
 }
@@ -102,15 +110,17 @@ function startLevel()
 function resetLevel()
 {
 	timePrev = millis() / 1000.0;
-	
-	_entities.remove(ship);
-	_entities.remove(ball);
-	_entities.remove(level.reactor);
-	_entities.push(ship, ball, level.reactor);
 
-	ball.reset();
-	ship.reset();
-	ship.move(0);
+	Game.entities.remove(Game.ship);
+	Game.entities.remove(Game.ball);
+	Game.entities.remove(Game.level.reactor);
+	Game.entities.push(Game.ship, Game.ball, Game.level.reactor);
+
+	let level = Level.levels[currentLevel];
+
+	Game.ball.reset(level.ballPos);
+	Game.ship.reset();
+	Game.ship.move(0);
 	level.reactor.reset();
 
 	wasAttaching = false;
@@ -121,11 +131,23 @@ function resetLevel()
 
 let starSum = 0;
 
-function draw()
+window['draw'] = function ()
 {
-	time = millis() / 1000.0;
-	const dt = time - timePrev;
-	timePrev = time;
+	const ship = Game.ship;
+	const level = Game.level;
+	const time = Game.time = millis() / 1000.0;
+	const dt = Game.time - timePrev;
+	timePrev = Game.time;
+
+
+	if (ship.dead)
+	{
+		ship.dead = false;
+
+		ship.kill();
+		waitTime = Game.time + 1.5;
+		setGame(GameState.DEATH);
+	}
 
 	let attaching = false;
 
@@ -147,17 +169,17 @@ function draw()
 
 			ship.fire(keys[KEY_FIRE]);
 
-			for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
+			for (let iEntity = Game.entities.length - 1; iEntity >= 0; iEntity--)
 			{
-				if (iEntity >= _entities.length)
+				if (iEntity >= Game.entities.length)
 					continue;	// handle when multiple entries are removed (eg ship & ball)
 
-				const entity = _entities[iEntity];
+				const entity = Game.entities[iEntity];
 				if (entity !== ship || gameState === GameState.PLAY)
 				{
 					if (entity.move(dt) === false)
 					{
-						_entities.removeAt(iEntity);
+						Game.entities.removeAt(iEntity);
 						continue;
 					}
 				}
@@ -167,9 +189,9 @@ function draw()
 					if (entity.solid)
 					{
 						if (entity !== ship && entity.collide(ship.p, ship.r) ||
-							entity !== ball && entity.collide(ball.p, ball.r))
+							entity !== Game.ball && entity.collide(Game.ball.p, Game.ball.r))
 						{
-							die();
+							ship.die();
 							continue;
 						}
 
@@ -183,8 +205,8 @@ function draw()
 							ship.refuel = true;
 							if (entity.fuel <= 0)
 							{
-								_entities.removeAt(iEntity);
-								score += 300;
+								Game.entities.removeAt(iEntity);
+								Game.score += 300;
 								continue;
 							}
 						}
@@ -193,7 +215,7 @@ function draw()
 					{
 						if (entity.collide(ship.p, ship.r))
 						{
-							_entities.removeAt(iEntity);
+							Game.entities.removeAt(iEntity);
 							level.checkpointPos = entity.p;
 							continue;
 						}
@@ -208,9 +230,9 @@ function draw()
 					ship.fuel = Math.max(0, ship.fuel - dt * THRUST_FUEL_RATE);
 
 				if (level.collideEntity(ship) ||
-					level.collideEntity(ball))
+					level.collideEntity(Game.ball))
 				{
-					die();
+					ship.die();
 				}
 
 				if (ship.p.y < -MAX_HEIGHT)
@@ -222,16 +244,16 @@ function draw()
 						if (level.reactor.life <= 0)
 							bonus += 2000;
 					}
-						
+
 					waitTime = time + 3;
 					setGame(GameState.ORBIT);
 				}
 
 				if (level.reactor.timeExplode && time > level.reactor.timeExplode)
 				{
-					for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
-						if (iEntity <= _entities.length)
-							_entities[iEntity].kill();
+					for (let iEntity = Game.entities.length - 1; iEntity >= 0; iEntity--)
+						if (iEntity <= Game.entities.length)
+							Game.entities[iEntity].kill();
 
 					waitTime = time + 3;
 					setGame(GameState.DESTROYED);
@@ -255,25 +277,25 @@ function draw()
 	else
 	{
 		// move particles
-		for (let iParticle = Particle.particles.length - 1; iParticle >= 0; iParticle--)
+		for (let iParticle = Game.particles.length - 1; iParticle >= 0; iParticle--)
 		{
-			const particle = Particle.particles[iParticle];
+			const particle = Game.particles[iParticle];
 			if (particle.move(dt) === false)
 			{
-				Particle.particles.removeAt(iParticle);
+				Game.particles.removeAt(iParticle);
 				continue;
 			}
 
 			const entity = particle.collideEntities();
 			if (entity)
 			{
-				Particle.particles.removeAt(iParticle);
+				Game.particles.removeAt(iParticle);
 
 				if (gameState === GameState.PLAY &&
 					particle instanceof Bullet &&
 					entity.damage(particle.friendly))
 				{
-					Particle.createExplosion(particle.p, 0, 4);
+					Explosion.create(particle.p, 0, 4);
 				}
 			}
 		}
@@ -285,10 +307,10 @@ function draw()
 		const sh = height / RENDER_SCALE;
 
 		noStroke();
-		
+
 		// draw sky
 
-		var yl = height/2 - py * RENDER_SCALE + 1;
+		var yl = height / 2 - py * RENDER_SCALE + 1;
 		if (yl > 0)
 		{
 			fill(0, 0, 0);
@@ -300,41 +322,41 @@ function draw()
 			{
 				starSum -= 1;
 
-				const syMin = py - sh/2;
-				const syMax = Math.min(0, py + sh/2);
+				const syMin = py - sh / 2;
+				const syMax = Math.min(0, py + sh / 2);
 
 				const sy = random(syMin, syMax);
-				const sx = px + random(-1,1) * sw/2;
+				const sx = px + random(-1, 1) * sw / 2;
 				const star = new Star(new Vec2(sx, sy));
-				Particle.particles.push(star);
-			} 
+				Game.particles.push(star);
+			}
 		}
 
 		push();
 		translate(width / 2, height / 2);
 		scale(RENDER_SCALE, RENDER_SCALE);
 		translate(- px, - py);
-		
+
 		// draw level
-		image(levelImg, 0, 0);
+		image(Game.levelImg, 0, 0);
 		if (px < width / 2)
-			image(levelImg, -levelImg.width, 0);
-		else if (px > levelImg.width - width / 2)
-			image(levelImg, levelImg.width, 0);
+			image(Game.levelImg, -Game.levelImg.width, 0);
+		else if (px > Game.levelImg.width - width / 2)
+			image(Game.levelImg, Game.levelImg.width, 0);
 
 		// draw particles
 		strokeWeight(0.25);
-		for (const particle of Particle.particles)
+		for (const particle of Game.particles)
 			particle.draw(time);
 
 		// draw entities
 		stroke(255, 255, 255);
 		strokeWeight(1.3);
 		fill(0, 0, 0);
-		for (const entity of _entities)
+		for (const entity of Game.entities)
 		{
-			if (Math.abs(entity.p.x - px) <= sw/2 + TILE_SIZE &&
-				Math.abs(entity.p.y - py) <= sh/2 + TILE_SIZE)
+			if (Math.abs(entity.p.x - px) <= sw / 2 + TILE_SIZE &&
+				Math.abs(entity.p.y - py) <= sh / 2 + TILE_SIZE)
 			{
 				entity.draw(time);
 			}
@@ -345,7 +367,7 @@ function draw()
 		if (ship.rod)
 			ship.rod.draw();
 		else if (attaching)
-			line(ship.p.x, ship.p.y, ball.p.x, ball.p.y);
+			line(ship.p.x, ship.p.y, Game.ball.p.x, Game.ball.p.y);
 
 		pop();
 	}
@@ -357,16 +379,16 @@ function draw()
 
 	fill(255, 255, 255);
 	textAlign(LEFT, TOP);
-	text("FUEL", fontHeight/2, fontHeight/2);
-	text((ship.fuel * 100).toFixed(), fontHeight/2, fontHeight*3/2);
+	text("FUEL", fontHeight / 2, fontHeight / 2);
+	text((ship.fuel * 100).toFixed(), fontHeight / 2, fontHeight * 3 / 2);
 
 	textAlign(RIGHT, TOP);
-	text("SCORE", width - fontHeight/2, fontHeight/2);
-	text("" + score, width - fontHeight/2, fontHeight*3/2);
+	text("SCORE", width - fontHeight / 2, fontHeight / 2);
+	text("" + Game.score, width - fontHeight / 2, fontHeight * 3 / 2);
 
 	textAlign(CENTER, TOP);
-	text("LIVES", width / 2, fontHeight/2);
-	text("" + lives, width / 2, fontHeight*3/2);
+	text("LIVES", width / 2, fontHeight / 2);
+	text("" + Game.lives, width / 2, fontHeight * 3 / 2);
 
 	switch (gameState)
 	{
@@ -388,7 +410,7 @@ function draw()
 			textAlign(CENTER, TOP);
 			text("THRUST TO START", 0, height * 2 / 3 + fontHeight * 2, width, height);
 
-			if (score === 0)
+			if (Game.score === 0)
 			{
 				text("RESCUE THE POD", 0, height * 2 / 3 - fontHeight, width, height);
 				text("DESTROY THE REACTOR", 0, height * 2 / 3 + 0, width, height);
@@ -407,7 +429,7 @@ function draw()
 		case GameState.DEATH:
 			if (time > waitTime && !keys[KEY_THRUST])
 			{
-				if (--lives >= 0 && ship.fuel > 0)
+				if (--Game.lives >= 0 && ship.fuel > 0)
 					resetLevel();
 				else
 				{
@@ -453,16 +475,16 @@ function draw()
 
 				fill(level.ballColor);
 				textAlign(RIGHT, TOP);
-				text("MISSION", width/2-fontHeight/2, height / 3 + fontHeight*2, 0, height);
+				text("MISSION", width / 2 - fontHeight / 2, height / 3 + fontHeight * 2, 0, height);
 				textAlign(LEFT, TOP);
-				text(ship.rod ? "COMPLETE" : "FAILED", width/2+fontHeight/2, height / 3 + fontHeight*2, 0, height);
+				text(ship.rod ? "COMPLETE" : "FAILED", width / 2 + fontHeight / 2, height / 3 + fontHeight * 2, 0, height);
 
 				fill(255, 255, 0);
 				textAlign(CENTER, TOP);
-				text((currentLevel + 1).toString(), 0, height / 3 + fontHeight*2, width, height);
-				text(ship.rod ? "BONUS " + bonus : "NO BONUS", 0, height / 3 + fontHeight*4, width, height);
+				text((currentLevel + 1).toString(), 0, height / 3 + fontHeight * 2, width, height);
+				text(ship.rod ? "BONUS " + bonus : "NO BONUS", 0, height / 3 + fontHeight * 4, width, height);
 			}
-	
+
 			if (time > waitTime && !keys[KEY_THRUST])
 			{
 				if (nextLevel)
@@ -478,13 +500,14 @@ function draw()
 	}
 }
 
-function preload()
+
+window['preload'] = function ()
 {
-	p5.disableFriendlyErrors = true;
+	//p5['disableFriendlyErrors'] = true;
 	font = loadFont("assets/supersimf.ttf");
 }
 
-function windowResized()
+window['windowResized'] = function ()
 {
 	pixelDensity(1);
 	createCanvas(windowWidth, windowHeight);
@@ -493,19 +516,19 @@ function windowResized()
 	fontHeight = Math.ceil(17 * RENDER_SCALE);
 }
 
-function setup()
+window['setup'] = function ()
 {
+
+	Entity.createExplosion = Explosion.create;
 	windowResized();
-	borderw = Math.ceil(width / TILE_SIZE / 2);
-	borderh = Math.ceil(height / TILE_SIZE / 2);
 
 	textFont(font);
-	
+
 	stroke(255, 255, 255);
 	fill(0, 0, 0);
 	angleMode(DEGREES);
 
-	initializeLevels();
+	Level.initializeLevels(width, height);
 
 	newGame();
 }

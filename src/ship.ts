@@ -1,14 +1,19 @@
-/// <reference path="entity.ts"/>
-/// <reference path="ball.ts"/>
+///// <reference path="entity.ts"/>
+///// <reference path="ball.ts"/>
+
+import { Vec2 } from './vec2';
+import { Entity } from './entity';
+import { Rod } from './rod';
+import { Bullet, BULLET_SPEED } from './bullet';
+import { Game } from './game';
 
 const SHIP_RADIUS = 14.5;
 const SHIELD_RADIUS = 16;
 const SHIP_WEIGHT = 0.75;
 const THRUST = 200;
-const TURN_SPEED = 275;
 const SHIELD_FUEL_RATE = 1/5;
-const REFUEL_RATE = 3;
-const THRUST_FUEL_RATE = 1/9;
+
+const BALL_WEIGHT = 0.75;
 
 const CABLE_LENGTH = 70;
 const TOTAL_WEIGHT = SHIP_WEIGHT + BALL_WEIGHT;
@@ -25,7 +30,7 @@ const FRICTION = 1;//0.99;
 const G = 45;
 const CABLE_FORCE = G / 40;
 
-class Ship extends Entity
+export class Ship extends Entity
 {
 	rod: Rod | null = null;
 
@@ -48,7 +53,7 @@ class Ship extends Entity
 
 	reset()
 	{
-		this.p = level.checkpointPos.clone();
+		this.p = Game.level.checkpointPos.clone();
 		this.v = new Vec2(0, 0);
 		this.rotateTo(-90);
 		this.thrust = false;
@@ -134,13 +139,13 @@ class Ship extends Entity
 			rod.v.scale(FRICTION);
 			rod.v.y += dt * G;
 			rod.p.addScale(rod.v, dt);
-			rod.p.x = (rod.p.x + levelImg.width) % levelImg.width;
+			rod.p.x = (rod.p.x + Game.levelImg.width) % Game.levelImg.width;
 			
 			rod.a += rod.va;
 
 			rod.dir = Vec2.fromAngle(rod.a);
 			this.p = rod.p.plus(rod.dir.times(SHIP_DISTANCE));
-			ball.p = rod.p.plus(rod.dir.times(-BALL_DISTANCE));
+			Game.ball.p = rod.p.plus(rod.dir.times(-BALL_DISTANCE));
 
 			this.v = rod.v;
 		}
@@ -151,7 +156,7 @@ class Ship extends Entity
 
 			this.v.y += dt * G;
 			this.p.addScale(this.v, dt);
-			this.p.x = (this.p.x + levelImg.width) % levelImg.width;
+			this.p.x = (this.p.x + Game.levelImg.width) % Game.levelImg.width;
 		}
 		return true;
 	}
@@ -160,7 +165,7 @@ class Ship extends Entity
 	{
 		if (_friendly || this.shield)
 			return true;
-		die();
+		this.die();
 		return false;
 	}
 
@@ -169,13 +174,18 @@ class Ship extends Entity
 		if (this.rod)
 		{
 			this.rod.kill();
-			this.rod.explode();	// required because rod isn't in _entities.
+			this.rod.explode();	// required because rod isn't in Game.entities.
 			this.rod = null;
 
-			ball.kill();
+			Game.ball.kill();
 		}
 
 		super.kill();
+	}
+
+	dead: Boolean = false;
+	die() {
+		this.dead = true;
 	}
 
 	activateShield(dt: number, wasAttaching: boolean)
@@ -185,17 +195,17 @@ class Ship extends Entity
 
 		if (!this.rod)
 		{
-			if (ball.collide(this.p, CABLE_LENGTH))
+			if (Game.ball.collide(this.p, CABLE_LENGTH))
 			{
 				attaching = true;
 				shield = true;
 
-				const rodDir = ball.p.minus(this.p);
+				const rodDir = Game.ball.p.minus(this.p);
 				this.v.addScale(rodDir, dt * CABLE_FORCE);
 			}
 			else if (wasAttaching)
 			{
-				var rodDir = this.p.minus(ball.p).unit();
+				var rodDir = this.p.minus(Game.ball.p).unit();
 				var rod = this.rod = new Rod(
 					this.p.minus(rodDir.times(SHIP_DISTANCE)),
 					rodDir.angle()
@@ -204,7 +214,7 @@ class Ship extends Entity
 				rod.v = this.v.times(1 / 2);
 				rod.va = -this.v.cross(rodDir) * dt;
 
-				ball.invincible = false;
+				Game.ball.invincible = false;
 			}
 		}
 
@@ -220,13 +230,13 @@ class Ship extends Entity
 	{
 		if (fire)
 		{
-			if (time - this.timeFire > 0.5)
+			if (Game.time - this.timeFire > 0.5)
 			{
-				this.timeFire = time;
+				this.timeFire = Game.time;
 				const p = this.p.plus(this.dir.times(this.r));
 				const b = new Bullet(p, this.dir.times(BULLET_SPEED).plus(this.v));
 				b.friendly = true;
-				Particle.particles.push(b);
+				Game.particles.push(b);
 			}
 		}
 		else
@@ -235,5 +245,3 @@ class Ship extends Entity
 		}
 	}
 }
-
-let ship: Ship;

@@ -1,11 +1,15 @@
-/// <reference path="global.ts"/>
+///// <reference path="global.ts"/>
 
-const EXPLOSION_DENSITY = 8;
+import { Vec2 } from './vec2';
+import { Game } from './game';
+import { Explosion } from './explosion';
 
-abstract class Entity
+export const EXPLOSION_DENSITY = 8;
+
+export abstract class Entity	
 {
 	solid = true;
-	
+
 	constructor(public p: Vec2, public readonly r: number)
 	{
 	}
@@ -21,18 +25,20 @@ abstract class Entity
 
 	remove()
 	{
-		const index = _entities.indexOf(this);
+		const index = Game.entities.indexOf(this);
 		if (index >= 0)
 		{
-			_entities.removeAt(index);
+			Game.entities.removeAt(index);
 			return true;
 		}
 		return false;
 	}
+	
+	static createExplosion: (p: Vec2, r: number, c: number) => void;
 
 	explode()
 	{
-		Particle.createExplosion(this.p, this.r, 5 + this.r * this.r / EXPLOSION_DENSITY);
+		Entity.createExplosion(this.p, this.r, 5 + this.r * this.r / EXPLOSION_DENSITY);
 	}
 
 	kill()
@@ -44,6 +50,6 @@ abstract class Entity
 	abstract draw(time: number): void;
 	move(_dt: number) { return true; }
 	damage(_friendly: boolean) { return false; }
+
 }
 
-const _entities: Entity[] = [];

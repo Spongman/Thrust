@@ -1,10 +1,14 @@
-/// <reference path="entity.ts"/>
+///// <reference path="entity.ts"/>
+import { Vec2 } from './vec2';
+import { Entity } from './entity';
+import { Game, TILE_SIZE } from './game';
+import { Explosion } from './explosion';
 
-class Rod extends Entity
+export class Rod extends Entity
 {
 	va = 0;
 	v = new Vec2(0, 0);
-	dir: Vec2;
+	dir: Vec2 = new Vec2(0, 0);
 
 	constructor(p: Vec2, public a: number)
 	{
@@ -21,7 +25,7 @@ class Rod extends Entity
 
 	draw()
 	{
-		line(ship.p.x, ship.p.y, ball.p.x, ball.p.y);
+		line(Game.ship.p.x, Game.ship.p.y, Game.ball.p.x, Game.ball.p.y);
 	}
 
 	explode()
@@ -29,8 +33,8 @@ class Rod extends Entity
 		const cr = 20;
 		for (let i = 0; i < cr; i++)
 		{
-			const rp = ship.p.times(i / cr).plus(ball.p.times(1 - i / cr));
-			Particle.createExplosion(rp, 3, 1);
+			const rp = Game.ship.p.times(i / cr).plus(Game.ball.p.times(1 - i / cr));
+			Explosion.create(rp, 3, 1);
 		}
 	}
 }

@@ -1,12 +1,16 @@
-/// <reference path="boxEntity.ts"/>
+///// <reference path="boxEntity.ts"/>
+import { Vec2 } from './vec2';
+import { BoxEntity } from './boxEntity';
+import { Box } from './box';
+import { TILE_SIZE, Game } from './game';
 
-class Fuel extends BoxEntity
+export class Fuel extends BoxEntity
 {
 	fuel = 3;
 	refuelBox: Box;
 	private readonly score = 150;
 
-	constructor(p: Vec2)
+	constructor(p: Vec2, private ballColor: p5.Color, private color: p5.Color)
 	{
 		super(p, new Box(
 			p.x + 8,
@@ -36,12 +40,12 @@ class Fuel extends BoxEntity
 		bezierVertex(-13, -19, -13, -9, -12, -8);
 		endShape();
 
-		stroke(level.ballColor);
+		stroke(this.ballColor);
 
 		line(-6, -6, -8, 0);
 		line(6, -6, 8, 0);
 
-		stroke(level.color);
+		stroke(this.color);
 
 		// F
 		line(-10, -10, -10, -18);
@@ -70,7 +74,7 @@ class Fuel extends BoxEntity
 	{
 		if (friendly)
 		{
-			score += this.score;
+			Game.score += this.score;
 			this.kill();
 		}
 		return false;

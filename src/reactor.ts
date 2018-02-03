@@ -1,16 +1,22 @@
-/// <reference path="boxEntity.ts"/>
+///// <reference path="boxEntity.ts"/>
+import { Vec2 } from './vec2';
+import { BoxEntity } from './boxEntity';
+import { Box } from './box';
+import { Explosion } from './explosion';
+import { Particle } from './particle';
+import { Game } from './game';
 
 const REACTOR_LIFE = 10;
 const REACTOR_HEAL = 1 / 4;
 
-class Reactor extends BoxEntity
+export class Reactor extends BoxEntity
 {
 	invincible = true;
 	private timeSmoke = 0;
 	timeExplode = 0;
 	life = REACTOR_LIFE;
 
-	constructor(p: Vec2)
+	constructor(p: Vec2, private ballColor: p5.Color, private color: p5.Color)
 	{
 		super(p, new Box(
 			p.x + 6, p.y + 13,
@@ -35,7 +41,7 @@ class Reactor extends BoxEntity
 		ellipse(20, 22, 30, 24);
 
 		fill(0, 0, 0);
-		stroke(level.ballColor);
+		stroke(this.ballColor);
 
 		beginShape();
 		vertex(3, 40);
@@ -48,7 +54,7 @@ class Reactor extends BoxEntity
 		vertex(37, 40);
 		endShape();
 
-		stroke(level.color);
+		stroke(this.color);
 
 		noFill();
 		beginShape();
@@ -63,13 +69,13 @@ class Reactor extends BoxEntity
 
 	move(dt: number)
 	{
-		if (time > this.timeSmoke && !this.isDamaged())
+		if (Game.time > this.timeSmoke && !this.isDamaged())
 		{
-			this.timeSmoke = time + random(0.3, 0.4);
+			this.timeSmoke = Game.time + random(0.3, 0.4);
 
 			const grey = random(192, 255);
 
-			Particle.particles.push(new Explosion(
+			Game.particles.push(new Explosion(
 				this.p.plus(new Vec2(30, 8)),
 				new Vec2(0, -60),
 				[grey, grey, grey],
@@ -90,7 +96,7 @@ class Reactor extends BoxEntity
 			this.life -= 1;
 
 			if (this.life < 0)
-				this.timeExplode = time + 10;
+				this.timeExplode = Game.time + 10;
 		}
 		return true;
 	}

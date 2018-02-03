@@ -1,6 +1,10 @@
-/// <reference path="entity.ts"/>
+///// <reference path="entity.ts"/>
+import { Vec2 } from './vec2';
+import { Box } from './box';
+import { Entity, EXPLOSION_DENSITY } from './entity';
+import { Explosion } from './explosion';
 
-abstract class BoxEntity extends Entity
+export abstract class BoxEntity extends Entity
 {
 	constructor(p: Vec2, public readonly box: Box)
 	{
@@ -18,7 +22,8 @@ abstract class BoxEntity extends Entity
 		for (let x = this.box.x; x < this.box.x + this.box.w; x += q)
 		{
 			for (let y = this.box.y; y < this.box.y + this.box.h; y += q)
-				Particle.createExplosion(new Vec2(x, y), 0, 1);
+				Explosion.create(new Vec2(x, y), 0, 1);
 		}
 	}
+
 }

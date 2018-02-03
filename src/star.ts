@@ -1,16 +1,20 @@
-/// <reference path="particle.ts"/>
+///// <reference path="particle.ts"/>
+
+import { Vec2 } from './vec2';
+import { Particle } from './particle';
+import { Game } from './game';
 
 const STAR_LIFE = 1;
 const STAR_RADIUS = 1;
 
-class Star extends Particle
+export class Star extends Particle
 {
 	private readonly time: number;
 
 	constructor(p: Vec2)
 	{
 		super(p, 0, new Vec2(0, 0));
-		this.time = time;
+		this.time = Game.time;
 	}
 
 	draw(time: number)
@@ -27,6 +31,6 @@ class Star extends Particle
 
 	move(_dt: number)
 	{
-		return (time - this.time) < STAR_LIFE;
+		return (Game.time - this.time) < STAR_LIFE;
 	}
 }

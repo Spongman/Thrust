@@ -1,9 +1,16 @@
-/// <reference path="particle.ts"/>
+///// <reference path="particle.ts"/>
+///// <reference path="level.ts"/>
+
+import { Vec2 } from './vec2';
+import { Particle } from './particle';
+import { MAX_HEIGHT } from './level';
+import { Entity } from './entity';
+import { Game } from './game';
 
 const BULLET_RADIUS = 1.5;
-const BULLET_SPEED = 250;
+export const BULLET_SPEED = 250;
 
-class Bullet extends Particle
+export class Bullet extends Particle
 {
 	friendly = false;
 
@@ -23,16 +30,16 @@ class Bullet extends Particle
 	{
 		return super.move(dt) &&
 			this.p.y > -MAX_HEIGHT &&
-			!level.collidePoint(this.p, this.r);
+			!Game.level.collidePoint(this.p, this.r);
 	}
 
 	collideEntities()
 	{
 		const p = this.p;
 		const r = this.r;
-		for (let iEntity = _entities.length - 1; iEntity >= 0; iEntity--)
+		for (let iEntity = Game.entities.length - 1; iEntity >= 0; iEntity--)
 		{
-			const entity = _entities[iEntity];
+			const entity = Game.entities[iEntity];
 			if (entity.solid && entity.collide(p, r))
 				return entity;
 		}

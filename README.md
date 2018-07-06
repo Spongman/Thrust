@@ -1,5 +1,9 @@
 # Thrust
+https://en.wikipedia.org/wiki/Thrust_(video_game)
 
-![screenshot](https://user-images.githubusercontent.com/1088194/30404179-3a2e56e8-989a-11e7-9e48-b36db34eee19.png)
+[Live Demo][1]
 
-demo: http://thrust.azurewebsites.net/
+[![Screenshot][2]][1]
+
+  [1]: http://codewithoutborders.com/WebDescent/
+  [2]: https://user-images.githubusercontent.com/1088194/30404179-3a2e56e8-989a-11e7-9e48-b36db34eee19.png (Live Demo)

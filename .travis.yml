@@ -13,7 +13,7 @@ deploy:
   provider: pages
   local-dir: dist
   skip-cleanup: true
-  github-token: vQsN3nwHWuz5iAtFCNKhhktDtZqtfJnGoYHgLta7JAu+zgOEkzTjss21xqfFKo/hxwhNrZBjWxSD1o4CfxfhAzXs1D2D2TY1tTtDypjPlbZhCR8MzInvXkecpXkNcbf8uNAHwqxfg0icqtB+pNDg9MWQLcRa3Su6hZUALza4e8NdgbSSgLZLQdidVSQhx5F4aE8gFa4lY19x/en1rKcp2PqeXeGGvIfKbI8kFW/0/xoxCzOW/KrNO7+b1T5vSzixQWWd8rKLLhn6jkE+fQKpw1Mtp5zcBUky+jDG9EjYE8n5D0z4U2d8qoYrPb9BjD80K6sJ3HtgaKsMjSNOL120L0Tju2LoPhIQnuDFKwBVOg2XpsynrGZz/vk6GxDBfqpxcalP/mbGo/LDVltThGPxKkV9O/CmMIMDquL5MHTrUkVcwvzibPwiSDCFTiEwd28AXd+26gliCeDe+kI4x+A9uk7FHmOsZtUNtX4rpwg2dET+yco8q+pmWr/5UQEV8Dvaw7lPAWpbmCLbbz/Lq4QELUxGy+Zy3xQhGjr2fRDDdo6geWb3BGp57qbwHvnJ9/wmnpiqgWXEsqQJzjRJXR9AbDXXFGmNWC4SI9tQbfP3VPEGXHWJPXf5ydkVBu4D1bthKfc+EOB2astTJpg/90oBp2pmN2QvcsePdHexlrGj/vM=
+  github-token: d3fd51b5f31992c940800803aa545068a46af337
   keep-history: true
   verbose: true
   on:

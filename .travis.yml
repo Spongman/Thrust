@@ -13,7 +13,7 @@ deploy:
   provider: pages
   local-dir: dist
   skip-cleanup: true
-  github-token: d3fd51b5f31992c940800803aa545068a46af337
+  github-token: $GITHUB_TOKEN
   keep-history: true
   verbose: true
   on:
